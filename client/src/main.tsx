@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./app";
-import { initStore } from "./lib/store";
+import { initStore } from "./library/store";
 import "./index.css";
 
 void initStore();
