@@ -7,6 +7,7 @@ import looksRoutes from "./routes/looks.js";
 import plansRoutes from "./routes/plans.js";
 import lensRoutes from "./routes/lens.js";
 import aiRoutes from "./routes/ai.js";
+import weatherRoutes from "./routes/weather.js";
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use("/api/looks", looksRoutes);
 app.use("/api/plans", plansRoutes);
 app.use("/api/lens", lensRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/weather", weatherRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

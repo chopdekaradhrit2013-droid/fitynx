@@ -22,6 +22,23 @@ export function setAuthToken(token: string | null): void {
   }
 }
 
+export interface WeatherData {
+  location: string;
+  coordinates: { lat: number; lon: number };
+  temperatureC: number;
+  temperatureF: number;
+  feelsLikeC: number;
+  humidity: number;
+  windKmh: number;
+  precipitationMm: number;
+  condition: string;
+  isRain: boolean;
+  isSnow: boolean;
+  category: "hot" | "mild" | "cool" | "cold" | "rainy";
+  summary: string;
+  tips: string[];
+}
+
 export interface ApiUser {
   id: string;
   name: string;
@@ -218,6 +235,17 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ brief, items, apiKey }),
       });
+    },
+  },
+
+  weather: {
+    async current(params?: { lat?: number; lon?: number; city?: string }): Promise<WeatherData> {
+      const q = new URLSearchParams();
+      if (params?.lat !== undefined) q.set("lat", String(params.lat));
+      if (params?.lon !== undefined) q.set("lon", String(params.lon));
+      if (params?.city) q.set("city", params.city);
+      const query = q.toString() ? `?${q.toString()}` : "";
+      return request<WeatherData>(`/api/weather/current${query}`);
     },
   },
 };
