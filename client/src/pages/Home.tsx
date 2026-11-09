@@ -28,11 +28,11 @@ const img = (t: GarmentType, c: string) => garmentDataUrl(t, c);
 
 const FEATURES = [
   { icon: Shirt, title: "A digital wardrobe", text: "Photograph what you own once. Every piece is catalogued by type, colour and name — searchable, filterable and always with you." },
-  { icon: Scissors, title: "Automatic cut-outs", text: "FITYNX lifts garments off plain backgrounds, so your closet looks like a considered catalogue rather than a camera roll." },
-  { icon: Palette, title: "Colour intelligence", text: "Dominant colours are read straight from your photos and checked against real harmony rules: tonal, neutral-plus-accent, complementary." },
-  { icon: Sparkles, title: "A stylist that explains", text: "Every look comes with the reasoning — why the palette works, how formal it is, what to finish with — and a transparent score." },
-  { icon: CloudSun, title: "Weather & occasion aware", text: "Tell it where you’re going and what the sky is doing. It chooses the right layers and the right level of polish." },
-  { icon: CalendarDays, title: "Plan the week", text: "Save the looks you love and assign them to days. Stop deciding at 7:45 a.m." },
+  { icon: Scissors, title: "AI cut-outs & Lens Match", text: "One-click neural background removal or search the web like Google Lens for crisp e-commerce catalog flat-lays of your clothes." },
+  { icon: Palette, title: "Color harmony theory", text: "Interactive color wheel harmonies: complementary contrast, analogous rhythm, monochromatic tone, and neutral grounding." },
+  { icon: Sparkles, title: "Gemini AI & smart stylist", text: "Curated looks with editorial reasoning, silhouette balance, and fit tips — powered by multimodal Gemini AI and local algorithms." },
+  { icon: CloudSun, title: "Live weather decider", text: "Live meteorological conditions and thermal layering formulas from Open-Meteo automatically compose outfits suited for today's forecast." },
+  { icon: CalendarDays, title: "Roulette & outfit face-off", text: "Overcome decision fatigue with the 10-second Outfit Roulette, or compare two looks head-to-head in the Outfit Face-Off arena." },
 ];
 
 const FAQ = [
