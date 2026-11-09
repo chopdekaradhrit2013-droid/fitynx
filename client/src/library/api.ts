@@ -27,8 +27,7 @@ export interface ApiUser {
   name: string;
   email: string;
   avatar?: string;
-  provider: "email" | "google";
-  googleId?: string;
+  provider: "email";
   createdAt: string;
   updatedAt: string;
 }
@@ -84,19 +83,11 @@ export const api = {
       return res;
     },
 
-    async google(data: {
-      credential?: string;
-      email?: string;
-      name?: string;
-      avatar?: string;
-      id?: string;
-    }): Promise<{ user: ApiUser; token: string }> {
-      const res = await request<{ user: ApiUser; token: string }>("/api/auth/google", {
-        method: "POST",
-        body: JSON.stringify(data),
+    async updateProfile(updates: { name?: string; avatar?: string }): Promise<{ user: ApiUser }> {
+      return request<{ user: ApiUser }>("/api/auth/profile", {
+        method: "PATCH",
+        body: JSON.stringify(updates),
       });
-      setAuthToken(res.token);
-      return res;
     },
 
     async me(): Promise<{ user: ApiUser }> {

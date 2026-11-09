@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { comparePassword, generateToken, hashPassword, parseGoogleJwt, requireAuth, type AuthenticatedRequest } from "../auth.js";
+import { comparePassword, generateToken, hashPassword, requireAuth, type AuthenticatedRequest } from "../auth.js";
 import { db } from "../db.js";
 import type { UserRecord } from "../types.js";
 
@@ -28,12 +28,6 @@ router.post("/signup", async (req, res): Promise<void> => {
 
     const existing = db.getUserByEmail(cleanEmail);
     if (existing) {
-      if (existing.provider === "google") {
-        res.status(400).json({
-          error: "An account with this email exists via Google. Please click 'Continue with Google'.",
-        });
-        return;
-      }
       res.status(400).json({ error: "An account with this email already exists. Please sign in." });
       return;
     }
@@ -82,13 +76,6 @@ router.post("/signin", async (req, res): Promise<void> => {
       return;
     }
 
-    if (user.provider === "google") {
-      res.status(400).json({
-        error: "This account was registered with Google. Please use 'Continue with Google'.",
-      });
-      return;
-    }
-
     if (!user.passwordHash) {
       res.status(401).json({ error: "Invalid account authentication configuration." });
       return;
@@ -110,77 +97,25 @@ router.post("/signin", async (req, res): Promise<void> => {
   }
 });
 
-// Sign in or Sign up with Google OAuth
-router.post("/google", async (req, res): Promise<void> => {
-  try {
-    const { credential, email, name, avatar, id } = req.body;
-
-    let googleEmail = email;
-    let googleName = name;
-    let googleAvatar = avatar;
-    let googleId = id;
-
-    // If official Google ID token is passed, parse it
-    if (typeof credential === "string" && credential.includes(".")) {
-      const parsed = parseGoogleJwt(credential);
-      if (parsed) {
-        googleEmail = parsed.email;
-        googleName = parsed.name;
-        googleAvatar = parsed.picture;
-        googleId = parsed.sub;
-      }
-    }
-
-    if (!googleEmail || typeof googleEmail !== "string") {
-      res.status(400).json({ error: "Missing Google account email" });
-      return;
-    }
-
-    const cleanEmail = googleEmail.trim().toLowerCase();
-    const cleanName = (typeof googleName === "string" && googleName.trim()) || cleanEmail.split("@")[0];
-
-    let user = db.getUserByEmail(cleanEmail);
-    const now = new Date().toISOString();
-
-    if (!user) {
-      // Create new user via Google
-      user = {
-        id: googleId ? `usr_g_${googleId}` : `usr_g_${Date.now()}`,
-        name: cleanName,
-        email: cleanEmail,
-        avatar: googleAvatar,
-        provider: "google",
-        googleId,
-        createdAt: now,
-        updatedAt: now,
-      };
-      db.createUser(user);
-    } else {
-      // Update existing user with Google details if not already present
-      const updates: Partial<UserRecord> = {};
-      if (googleAvatar && user.avatar !== googleAvatar) updates.avatar = googleAvatar;
-      if (cleanName && user.name !== cleanName) updates.name = cleanName;
-      if (googleId && !user.googleId) updates.googleId = googleId;
-
-      if (Object.keys(updates).length > 0) {
-        user = db.updateUser(user.id, updates)!;
-      }
-    }
-
-    const token = generateToken(user);
-    const safeUser = db.toSafeUser(user);
-
-    res.json({ user: safeUser, token });
-  } catch (err) {
-    console.error("Google auth error:", err);
-    res.status(500).json({ error: "Failed to authenticate with Google" });
-  }
-});
-
 // Get current user profile
 router.get("/me", requireAuth, (req: AuthenticatedRequest, res): void => {
   const safeUser = db.toSafeUser(req.user!);
   res.json({ user: safeUser });
+});
+
+// Update user profile
+router.patch("/profile", requireAuth, (req: AuthenticatedRequest, res): void => {
+  const { name, avatar } = req.body;
+  const updates: Partial<UserRecord> = {};
+  if (typeof name === "string" && name.trim()) updates.name = name.trim();
+  if (typeof avatar === "string") updates.avatar = avatar.trim();
+
+  const updated = db.updateUser(req.user!.id, updates);
+  if (!updated) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
+  res.json({ user: db.toSafeUser(updated) });
 });
 
 // Sign out

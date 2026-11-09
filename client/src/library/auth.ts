@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
-  provider: "email" | "google";
+  provider: "email";
   createdAt: string;
 }
 
@@ -22,35 +22,17 @@ export interface SignInData {
   password: string;
 }
 
-export interface GoogleAuthPayload {
-  id?: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  credential?: string;
-}
-
 const USERS_STORAGE_KEY = "fitynx_auth_users_v1";
 const SESSION_STORAGE_KEY = "fitynx_auth_session_v1";
-const GOOGLE_CLIENT_ID_KEY = "fitynx_google_client_id";
 
-// Pre-seeded demo accounts
+// Pre-seeded demo account
 const INITIAL_DEMO_USERS: StoredAccount[] = [
-  {
-    id: "usr_google_alex",
-    name: "Alex Morgan",
-    email: "alex.morgan@gmail.com",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-    provider: "google",
-    createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
-  },
   {
     id: "usr_email_demo",
     name: "Elena Rostova",
     email: "demo@fitynx.com",
     avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
     provider: "email",
-    // SHA-256 hash of "password123_fitynx_salt"
     passwordHash: "7b4c278a9c2ca26955fc1d7a9ca504f77c38550186718cfd1d234c98f86f77ec",
     createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
   },
@@ -109,48 +91,6 @@ export function setCurrentSession(user: User | null): void {
   }
 }
 
-export function getGoogleClientId(): string {
-  // Check environment variable first (e.g. from Vite), then localStorage
-  const envId = (import.meta as { env?: Record<string, string> }).env?.VITE_GOOGLE_CLIENT_ID;
-  if (envId && envId.trim().length > 0) return envId.trim();
-  try {
-    return localStorage.getItem(GOOGLE_CLIENT_ID_KEY) || "";
-  } catch {
-    return "";
-  }
-}
-
-export function setGoogleClientId(clientId: string): void {
-  try {
-    if (!clientId) {
-      localStorage.removeItem(GOOGLE_CLIENT_ID_KEY);
-    } else {
-      localStorage.setItem(GOOGLE_CLIENT_ID_KEY, clientId.trim());
-    }
-  } catch (err) {
-    console.error("Failed to set Google Client ID", err);
-  }
-}
-
-export function parseGoogleJwt(token: string): { email: string; name: string; picture?: string; sub: string } | null {
-  try {
-    const parts = token.split(".");
-    if (parts.length < 2) return null;
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    console.error("Failed to parse Google JWT", e);
-    return null;
-  }
-}
-
 export async function signUpUser({ name, email, password }: SignUpData): Promise<User> {
   const cleanEmail = email.trim().toLowerCase();
   const cleanName = name.trim();
@@ -168,9 +108,6 @@ export async function signUpUser({ name, email, password }: SignUpData): Promise
   const users = getStoredUsers();
   const existing = users.find(u => u.email.toLowerCase() === cleanEmail);
   if (existing) {
-    if (existing.provider === "google") {
-      throw new Error("This email is registered with Google. Please use 'Continue with Google'.");
-    }
     throw new Error("An account with this email already exists. Please sign in instead.");
   }
 
@@ -217,67 +154,10 @@ export async function signInUser({ email, password }: SignInData): Promise<User>
     throw new Error("No account found with this email. Please check your email or sign up.");
   }
 
-  if (user.provider === "google") {
-    throw new Error("This account was created with Google. Please click 'Continue with Google'.");
-  }
-
   const hash = await hashPassword(password);
-  // Compare hash or allow demo password for demo user
   const isDemo = user.id === "usr_email_demo" && (password === "password123" || hash === user.passwordHash);
   if (!isDemo && user.passwordHash !== hash) {
     throw new Error("Incorrect password. Please try again.");
-  }
-
-  const sessionUser: User = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    avatar: user.avatar,
-    provider: user.provider,
-    createdAt: user.createdAt,
-  };
-
-  setCurrentSession(sessionUser);
-  return sessionUser;
-}
-
-export async function signInWithGoogleAuth(payload: GoogleAuthPayload): Promise<User> {
-  const cleanEmail = payload.email.trim().toLowerCase();
-  const cleanName = payload.name.trim() || cleanEmail.split("@")[0];
-
-  if (!cleanEmail) {
-    throw new Error("Invalid Google account data: missing email");
-  }
-
-  const users = getStoredUsers();
-  let user = users.find(u => u.email.toLowerCase() === cleanEmail);
-
-  if (!user) {
-    // Automatically register new user via Google
-    user = {
-      id: payload.id ? `usr_g_${payload.id}` : `usr_g_${Date.now()}`,
-      name: cleanName,
-      email: cleanEmail,
-      avatar: payload.avatar,
-      provider: "google",
-      createdAt: new Date().toISOString(),
-    };
-    users.push(user);
-    saveStoredUsers(users);
-  } else {
-    // Update existing user's avatar or name if provided by Google
-    let changed = false;
-    if (payload.avatar && user.avatar !== payload.avatar) {
-      user.avatar = payload.avatar;
-      changed = true;
-    }
-    if (cleanName && user.name !== cleanName) {
-      user.name = cleanName;
-      changed = true;
-    }
-    if (changed) {
-      saveStoredUsers(users);
-    }
   }
 
   const sessionUser: User = {
@@ -308,8 +188,8 @@ export async function updateUserProfile(updates: Partial<User>): Promise<User> {
   const updated: StoredAccount = {
     ...users[idx],
     ...updates,
-    id: current.id, // prevent changing id
-    email: current.email, // email change restricted
+    id: current.id,
+    email: current.email,
   };
 
   users[idx] = updated;
@@ -327,4 +207,3 @@ export async function updateUserProfile(updates: Partial<User>): Promise<User> {
   setCurrentSession(sessionUser);
   return sessionUser;
 }
-

@@ -23,16 +23,6 @@ function getInitialDatabase(): DatabaseSchema {
   return {
     users: [
       {
-        id: "usr_google_alex",
-        name: "Alex Morgan",
-        email: "alex.morgan@gmail.com",
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
-        provider: "google",
-        googleId: "google_alex_123",
-        createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
-        updatedAt: new Date(Date.now() - 30 * 86400000).toISOString(),
-      },
-      {
         id: "usr_email_elena",
         name: "Elena Rostova",
         email: "demo@fitynx.com",
@@ -92,10 +82,6 @@ class Database {
   getUserByEmail(email: string): UserRecord | undefined {
     const clean = email.trim().toLowerCase();
     return this.data.users.find(u => u.email.toLowerCase() === clean);
-  }
-
-  getUserByGoogleId(googleId: string): UserRecord | undefined {
-    return this.data.users.find(u => u.googleId === googleId);
   }
 
   createUser(user: UserRecord): UserRecord {

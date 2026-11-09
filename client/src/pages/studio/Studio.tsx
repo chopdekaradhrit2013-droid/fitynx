@@ -102,7 +102,7 @@ export default function Studio() {
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-sidebar-border/60 pt-2 text-[10px] text-muted-foreground">
                 <span className="inline-flex items-center gap-1 font-mono uppercase tracking-wider">
-                  {user.provider === "google" ? "Google OAuth" : "Email account"}
+                  Signed in
                 </span>
                 <span className="text-[10px] text-primary">Active</span>
               </div>

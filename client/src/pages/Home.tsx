@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { garmentDataUrl } from "@/lib/garments";
 import { buildSampleWardrobe } from "@/lib/sample";
 import type { GarmentType } from "@/lib/types";
-import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, HardDrive, Layers, LogIn, Menu, Palette, Scissors, ShieldCheck, Shirt, Sparkles, UserPlus, X } from "lucide-react";
+import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, HardDrive, Layers, Menu, Palette, Scissors, ShieldCheck, Shirt, Sparkles, X } from "lucide-react";
 import * as React from "react";
 import { Link } from "wouter";
 
@@ -36,12 +36,11 @@ const FEATURES = [
 ];
 
 const FAQ = [
-  { q: "How do sign up and sign in work?", a: "FITYNX supports fast, secure sign-in with Google OAuth or email and password. Your personal account securely keeps your wardrobe, saved outfits, and styling history accessible to you." },
-  { q: "Can I use Google OAuth to sign in?", a: "Yes. Google OAuth is available as a one-click option. Simply click 'Continue with Google' to sign up or sign in instantly with your Google account." },
-  { q: "Where do my photos go?", a: "Nowhere. Images are processed and stored locally in your browser. FITYNX has no upload server, so your photos are never transmitted, stored by us, or used to train anything." },
-  { q: "Is the stylist really “AI”?", a: "FITYNX combines on-device image analysis (colour extraction, background removal) with a transparent styling engine that scores colour harmony, formality and weather suitability. It does not send your wardrobe to a third-party model, and it will only ever recommend pieces you actually own." },
+  { q: "How do sign up and sign in work?", a: "FITYNX supports fast, secure sign-in with your email and password. Your personal account securely keeps your wardrobe, saved outfits, and styling history accessible to you whenever you return." },
+  { q: "Where do my photos go?", a: "Your photos and wardrobe details are stored securely for your personal account and processed in your browser. We never share your photos or use them to train public models." },
+  { q: "Is the stylist really “AI”?", a: "FITYNX combines on-device image analysis (colour extraction, background removal) with a transparent styling engine that scores colour harmony, formality and weather suitability. It will only ever recommend pieces you actually own." },
   { q: "What kind of photos work best?", a: "A single garment laid flat or hung against a plain, evenly lit surface. That gives the cleanest cut-out and the most accurate colour. You can always correct the type and colour before saving." },
-  { q: "What happens if I clear my browser data?", a: "Your wardrobe lives in browser storage, so clearing site data removes it. Use Settings → Export to keep a JSON backup of your pieces, looks and calendar." },
+  { q: "What happens if I switch devices or browsers?", a: "Your wardrobe is stored securely in your account database, so your pieces and outfits are preserved and synchronized whenever you sign in." },
   { q: "Does it cost anything?", a: "FITYNX is free to use." },
 ];
 
@@ -95,7 +94,7 @@ export default function Home() {
                 <>
                   <div className="flex items-center justify-between py-2 border-b border-border">
                     <span className="text-sm font-medium">{user?.name}</span>
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{user?.provider}</span>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Signed in</span>
                   </div>
                   <Button asChild className="w-full">
                     <Link href="/app">Open studio <ArrowRight className="size-4" /></Link>
@@ -141,7 +140,7 @@ export default function Home() {
               <Button asChild size="lg" variant="ghost"><a href="#how">See how it works</a></Button>
             </div>
             <ul className="mt-12 flex flex-wrap gap-x-7 gap-y-3 border-t border-border pt-6 text-xs text-muted-foreground">
-              {["Google OAuth & email sign-in", "Photos stay on your device", "Free to use"].map(t => <li key={t} className="inline-flex items-center gap-2"><span className="size-1 rounded-full bg-[#F26A4B]" />{t}</li>)}
+              {["Personal account sign-in", "Photos stored securely", "Free to use"].map(t => <li key={t} className="inline-flex items-center gap-2"><span className="size-1 rounded-full bg-[#F26A4B]" />{t}</li>)}
             </ul>
           </div>
           <HeroVisual />
@@ -152,7 +151,7 @@ export default function Home() {
           <div className="mx-auto grid max-w-[1320px] gap-px bg-border md:grid-cols-3">
             {[
               { icon: Layers, t: "Your wardrobe first", d: "No imaginary pieces and no endless shopping loop. Every look starts with what is already in your closet." },
-              { icon: HardDrive, t: "Private by architecture", d: "Everything runs in your browser. There is no server to receive your photos, because there isn’t one." },
+              { icon: HardDrive, t: "Private by architecture", d: "Everything runs in your browser and your private account. Photos stay yours." },
               { icon: Droplets, t: "More wear, less waste", d: "The most sustainable garment is the one you already own, waiting for its next good day." },
             ].map(p => (
               <div key={p.t} className="bg-background px-6 py-9 md:px-10 md:py-12">
@@ -233,9 +232,9 @@ export default function Home() {
           </Reveal>
           <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
             {[
-              { icon: HardDrive, t: "On-device storage", d: "Photos and data are saved in your browser, not on a remote database." },
-              { icon: EyeOff, t: "No tracking of your wardrobe", d: "We don’t see what you own, what you save or what you plan." },
-              { icon: ShieldCheck, t: "Personal account security", d: "Sign in with Google OAuth or email — your wardrobe data is isolated securely for your personal account." },
+              { icon: HardDrive, t: "On-device & private cloud", d: "Photos and data are saved securely to your personal account." },
+              { icon: EyeOff, t: "No tracking of your wardrobe", d: "We don’t sell your data, inspect your choices, or use photos to train public models." },
+              { icon: ShieldCheck, t: "Personal account security", d: "Sign in with your email and password — your wardrobe data is isolated securely for your personal account." },
               { icon: Droplets, t: "You’re in control", d: "Export a backup or erase everything in one click from Settings." },
             ].map(p => (
               <div key={p.t} className="bg-card p-6 md:p-8">
@@ -272,7 +271,7 @@ export default function Home() {
               <p className="mx-auto mt-6 max-w-md text-sm leading-7 text-primary-foreground/70">
                 {isAuthenticated
                   ? "Welcome back. Your personal wardrobe and stylist are ready."
-                  : "Sign in with Google OAuth or create a free account to compose your first look in under a minute."}
+                  : "Create a free account or sign in to compose your first look in under a minute."}
               </p>
               <div className="mt-9 flex flex-wrap justify-center gap-3">
                 {isAuthenticated ? (

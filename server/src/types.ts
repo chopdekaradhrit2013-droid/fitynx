@@ -4,8 +4,7 @@ export interface UserRecord {
   email: string;
   passwordHash?: string;
   avatar?: string;
-  provider: "email" | "google";
-  googleId?: string;
+  provider: "email";
   createdAt: string;
   updatedAt: string;
 }

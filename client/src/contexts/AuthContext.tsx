@@ -2,10 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { api, getAuthToken, setAuthToken } from "@/lib/api";
 import {
   getCurrentSession,
-  getGoogleClientId,
   setCurrentSession,
-  setGoogleClientId as setStoredGoogleClientId,
-  type GoogleAuthPayload,
   type SignInData,
   type SignUpData,
   type User,
@@ -16,11 +13,8 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
-  googleClientId: string;
-  setGoogleClientId: (id: string) => void;
   signUp: (data: SignUpData) => Promise<User>;
   signIn: (data: SignInData) => Promise<User>;
-  signInWithGoogle: (payload: GoogleAuthPayload) => Promise<User>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<User>;
 }
@@ -30,7 +24,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [googleClientId, setGoogleClientIdState] = useState<string>(getGoogleClientId());
 
   useEffect(() => {
     async function loadInitialSession() {
@@ -43,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: serverUser.name,
             email: serverUser.email,
             avatar: serverUser.avatar,
-            provider: serverUser.provider,
+            provider: "email",
             createdAt: serverUser.createdAt,
           };
           setUser(mappedUser);
@@ -70,19 +63,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const nextUser = getCurrentSession();
         setUser(nextUser);
         void initStore(nextUser ? nextUser.id : null);
-      } else if (e.key === "fitynx_google_client_id") {
-        setGoogleClientIdState(getGoogleClientId());
       }
     };
 
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
-
-  const handleSetGoogleClientId = (id: string) => {
-    setStoredGoogleClientId(id);
-    setGoogleClientIdState(id);
-  };
 
   const handleSignUp = async (data: SignUpData): Promise<User> => {
     try {
@@ -92,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: res.user.name,
         email: res.user.email,
         avatar: res.user.avatar,
-        provider: res.user.provider,
+        provider: "email",
         createdAt: res.user.createdAt,
       };
       setUser(newUser);
@@ -113,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         name: res.user.name,
         email: res.user.email,
         avatar: res.user.avatar,
-        provider: res.user.provider,
+        provider: "email",
         createdAt: res.user.createdAt,
       };
       setUser(sessionUser);
@@ -122,33 +108,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return sessionUser;
     } catch (err) {
       console.error("Sign in error:", err);
-      throw err;
-    }
-  };
-
-  const handleSignInWithGoogle = async (payload: GoogleAuthPayload): Promise<User> => {
-    try {
-      const res = await api.auth.google({
-        email: payload.email,
-        name: payload.name,
-        avatar: payload.avatar,
-        id: payload.id,
-        credential: payload.credential,
-      });
-      const sessionUser: User = {
-        id: res.user.id,
-        name: res.user.name,
-        email: res.user.email,
-        avatar: res.user.avatar,
-        provider: res.user.provider,
-        createdAt: res.user.createdAt,
-      };
-      setUser(sessionUser);
-      setCurrentSession(sessionUser);
-      await initStore(sessionUser.id);
-      return sessionUser;
-    } catch (err) {
-      console.error("Google sign in error:", err);
       throw err;
     }
   };
@@ -168,10 +127,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleUpdateProfile = async (updates: Partial<User>): Promise<User> => {
     if (!user) throw new Error("No active user");
-    const updatedUser = { ...user, ...updates };
-    setUser(updatedUser);
-    setCurrentSession(updatedUser);
-    return updatedUser;
+    try {
+      const res = await api.auth.updateProfile({
+        name: updates.name,
+        avatar: updates.avatar,
+      });
+      const updatedUser: User = {
+        ...user,
+        name: res.user.name,
+        avatar: res.user.avatar,
+      };
+      setUser(updatedUser);
+      setCurrentSession(updatedUser);
+      return updatedUser;
+    } catch {
+      const updatedUser: User = { ...user, ...updates };
+      setUser(updatedUser);
+      setCurrentSession(updatedUser);
+      return updatedUser;
+    }
   };
 
   return (
@@ -180,11 +154,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         isAuthenticated: !!user,
         loading,
-        googleClientId,
-        setGoogleClientId: handleSetGoogleClientId,
         signUp: handleSignUp,
         signIn: handleSignIn,
-        signInWithGoogle: handleSignInWithGoogle,
         signOut: handleSignOut,
         updateProfile: handleUpdateProfile,
       }}
