@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import bcrypt from "bcryptjs";
 import type { DatabaseSchema, LookRecord, PlanRecord, SafeUser, UserRecord, WardrobeItemRecord } from "./types.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,22 +16,8 @@ function ensureDirectoryExists(dir: string) {
 }
 
 function getInitialDatabase(): DatabaseSchema {
-  const salt = bcrypt.genSaltSync(10);
-  const demoPasswordHash = bcrypt.hashSync("password123", salt);
-
   return {
-    users: [
-      {
-        id: "usr_email_elena",
-        name: "Elena Rostova",
-        email: "demo@fitynx.com",
-        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
-        provider: "email",
-        passwordHash: demoPasswordHash,
-        createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
-        updatedAt: new Date(Date.now() - 14 * 86400000).toISOString(),
-      },
-    ],
+    users: [],
     wardrobe: [],
     looks: [],
     plans: [],

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Brand } from "@/components/site/Brand";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Sparkles, User as UserIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, User as UserIcon } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -61,22 +61,6 @@ export default function AuthPage({ initialMode = "login" }: AuthPageProps) {
       setLocation(redirectTarget);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDemoSignIn = async () => {
-    setLoading(true);
-    try {
-      await signIn({
-        email: "demo@fitynx.com",
-        password: "password123",
-      });
-      toast.success("Signed in as Elena Rostova (Demo)");
-      setLocation(redirectTarget);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Demo sign in failed");
     } finally {
       setLoading(false);
     }
@@ -155,7 +139,7 @@ export default function AuthPage({ initialMode = "login" }: AuthPageProps) {
                     <UserIcon className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
                     <input
                       type="text"
-                      placeholder="e.g. Elena Rostova"
+                      placeholder="e.g. Jane Doe"
                       value={name}
                       onChange={e => setName(e.target.value)}
                       required
@@ -191,7 +175,7 @@ export default function AuthPage({ initialMode = "login" }: AuthPageProps) {
                     <button
                       type="button"
                       onClick={() =>
-                        toast.info("Demo account password is 'password123' (or click Instant Demo below).")
+                        toast.info("Password reset instructions will be sent to your registered email.")
                       }
                       className="text-[11px] text-muted-foreground hover:text-foreground"
                     >
@@ -271,24 +255,6 @@ export default function AuthPage({ initialMode = "login" }: AuthPageProps) {
                 )}
               </Button>
             </form>
-
-            {/* Quick Demo Login */}
-            <div className="mt-6 border-t border-border pt-4">
-              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-muted-foreground text-center">
-                Fast review · One-click demo sign in
-              </p>
-              <div className="mt-2.5 flex justify-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDemoSignIn}
-                  className="w-full text-xs font-normal"
-                >
-                  <Sparkles className="size-3 text-[#F26A4B]" /> Continue as Elena (Demo Account)
-                </Button>
-              </div>
-            </div>
 
             {/* Privacy note */}
             <div className="mt-5 flex items-start gap-2 rounded-xl bg-accent/30 p-3 text-[11px] leading-4 text-muted-foreground">

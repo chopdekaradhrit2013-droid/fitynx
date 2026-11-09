@@ -25,19 +25,6 @@ export interface SignInData {
 const USERS_STORAGE_KEY = "fitynx_auth_users_v1";
 const SESSION_STORAGE_KEY = "fitynx_auth_session_v1";
 
-// Pre-seeded demo account
-const INITIAL_DEMO_USERS: StoredAccount[] = [
-  {
-    id: "usr_email_demo",
-    name: "Elena Rostova",
-    email: "demo@fitynx.com",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80",
-    provider: "email",
-    passwordHash: "7b4c278a9c2ca26955fc1d7a9ca504f77c38550186718cfd1d234c98f86f77ec",
-    createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
-  },
-];
-
 export async function hashPassword(password: string): Promise<string> {
   const enc = new TextEncoder();
   const data = enc.encode(password + "_fitynx_salt");
@@ -51,13 +38,13 @@ export function getStoredUsers(): StoredAccount[] {
   try {
     const raw = localStorage.getItem(USERS_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_DEMO_USERS));
-      return INITIAL_DEMO_USERS;
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify([]));
+      return [];
     }
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : INITIAL_DEMO_USERS;
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return INITIAL_DEMO_USERS;
+    return [];
   }
 }
 
@@ -155,8 +142,7 @@ export async function signInUser({ email, password }: SignInData): Promise<User>
   }
 
   const hash = await hashPassword(password);
-  const isDemo = user.id === "usr_email_demo" && (password === "password123" || hash === user.passwordHash);
-  if (!isDemo && user.passwordHash !== hash) {
+  if (user.passwordHash !== hash) {
     throw new Error("Incorrect password. Please try again.");
   }
 
