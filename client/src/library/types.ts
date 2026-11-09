@@ -48,6 +48,9 @@ export interface WardrobeItem {
   /** Background-removed PNG (data URL) when automatic cut-out succeeded. */
   cutout?: string;
   sample?: boolean;
+  price?: number;
+  wearCount?: number;
+  lastWorn?: number;
   createdAt: number;
 }
 

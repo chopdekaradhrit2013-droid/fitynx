@@ -23,7 +23,11 @@ export default function Plan() {
   const add = () => {
     if (!lookId) return;
     actions.addPlan({ id: uid(), lookId, date, note: "" });
-    toast.success(`Planned for ${fmt(date)}`);
+    const look = allLooks.find(l => l.id === lookId);
+    if (look) {
+      actions.logItemsWorn(look.items.map(i => i.itemId));
+    }
+    toast.success(`Scheduled for ${fmt(date)} · wear logged!`);
   };
 
   const row = (p: (typeof plan)[number], muted?: boolean) => {

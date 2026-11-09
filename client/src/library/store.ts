@@ -179,6 +179,31 @@ export const actions = {
     }
   },
 
+  async logItemsWorn(itemIds: string[]) {
+    const now = Date.now();
+    const updated = state.items.map(item => {
+      if (itemIds.includes(item.id)) {
+        return {
+          ...item,
+          wearCount: (item.wearCount || 0) + 1,
+          lastWorn: now,
+        };
+      }
+      return item;
+    });
+    set({ items: updated });
+    persistLocal("items");
+
+    if (getAuthToken()) {
+      itemIds.forEach(id => {
+        const it = updated.find(i => i.id === id);
+        if (it) {
+          api.wardrobe.update(id, { wearCount: it.wearCount, lastWorn: it.lastWorn }).catch(() => {});
+        }
+      });
+    }
+  },
+
   clearSamples() {
     const clean = state.items.filter(i => !i.sample && !i.id.startsWith("sample-"));
     set({ items: clean });

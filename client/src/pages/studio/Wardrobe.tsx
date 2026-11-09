@@ -226,6 +226,11 @@ export default function Wardrobe() {
                             <span className="mt-2 text-[11px]">No photo uploaded</span>
                           </div>
                         )}
+                        {item.wearCount && item.wearCount > 0 ? (
+                          <span className="absolute top-2 right-2 rounded-full border border-border bg-background/90 backdrop-blur-xs px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-foreground shadow-xs">
+                            {item.price ? `$${(item.price / item.wearCount).toFixed(0)}/w` : `${item.wearCount}w`}
+                          </span>
+                        ) : null}
                       </div>
                       <div className="p-3.5">
                         <h3 className="truncate text-sm font-medium">{item.name}</h3>
@@ -479,6 +484,8 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
   const [color, setColor] = React.useState("#000000");
   const [notes, setNotes] = React.useState("");
   const [image, setImage] = React.useState("");
+  const [price, setPrice] = React.useState<number | "">("");
+  const [wearCount, setWearCount] = React.useState<number>(0);
   const [lensOpen, setLensOpen] = React.useState(false);
   const [analyzing, setAnalyzing] = React.useState(false);
 
@@ -489,10 +496,14 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
       setColor(item.colorHex);
       setNotes(item.notes);
       setImage(item.image);
+      setPrice(typeof item.price === "number" ? item.price : "");
+      setWearCount(item.wearCount || 0);
     }
   }, [item]);
 
   if (!item) return null;
+
+  const cpw = typeof price === "number" && price > 0 ? (price / Math.max(1, wearCount)).toFixed(2) : null;
 
   const handleGemini = async () => {
     setAnalyzing(true);
@@ -550,12 +561,39 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
             <Field label="Name"><input className="studio-input" value={name} onChange={e => setName(e.target.value)} maxLength={60} /></Field>
             <Field label="Type"><TypeSelect value={type} onChange={setType} /></Field>
             <Field label="Colour"><div className="flex items-center gap-3"><input type="color" value={color} onChange={e => setColor(e.target.value)} className="size-9 cursor-pointer rounded border border-border bg-transparent p-0" /><span className="text-sm text-muted-foreground">{nameColor(color)}</span></div></Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Purchase Price ($)" hint={cpw ? `CPW: $${cpw}` : "Optional"}>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g. 65"
+                  className="studio-input"
+                  value={price}
+                  onChange={e => setPrice(e.target.value === "" ? "" : parseFloat(e.target.value))}
+                />
+              </Field>
+              <Field label="Wear Count">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-sm font-semibold px-2">{wearCount} {wearCount === 1 ? "wear" : "wears"}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs ml-auto"
+                    onClick={() => setWearCount(c => c + 1)}
+                  >
+                    +1 Wear
+                  </Button>
+                </div>
+              </Field>
+            </div>
             <Field label="Notes"><textarea className="studio-input min-h-16 resize-none" value={notes} onChange={e => setNotes(e.target.value)} maxLength={240} placeholder="Fit, fabric, care…" /></Field>
           </div>
         </div>
         <div className="mt-7 flex items-center justify-between">
           <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => { if (window.confirm(`Remove “${item.name}” from your wardrobe?`)) { actions.removeItem(item.id); toast("Piece removed"); onClose(); } }}><Trash2 className="size-4" /> Remove</Button>
-          <div className="flex gap-3"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button onClick={() => { actions.updateItem(item.id, { name: name.trim() || item.name, type, colorHex: color, colorName: nameColor(color), notes, image }); onClose(); toast.success("Saved"); }}>Save changes</Button></div>
+          <div className="flex gap-3"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button onClick={() => { actions.updateItem(item.id, { name: name.trim() || item.name, type, colorHex: color, colorName: nameColor(color), notes, image, price: typeof price === "number" ? price : undefined, wearCount }); onClose(); toast.success("Saved"); }}>Save changes</Button></div>
         </div>
       </Modal>
 

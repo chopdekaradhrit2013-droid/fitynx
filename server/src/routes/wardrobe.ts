@@ -33,6 +33,9 @@ router.post("/", (req: AuthenticatedRequest, res): void => {
     notes: item.notes || "",
     image: item.image || "",
     cutout: item.cutout || undefined,
+    price: typeof item.price === "number" ? item.price : undefined,
+    wearCount: typeof item.wearCount === "number" ? item.wearCount : 0,
+    lastWorn: typeof item.lastWorn === "number" ? item.lastWorn : undefined,
     createdAt: item.createdAt || now - index,
   }));
 

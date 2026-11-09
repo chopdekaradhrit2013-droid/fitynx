@@ -29,6 +29,9 @@ export interface WardrobeItemRecord {
   notes: string;
   image: string;
   cutout?: string;
+  price?: number;
+  wearCount?: number;
+  lastWorn?: number;
   createdAt: number;
 }
 
