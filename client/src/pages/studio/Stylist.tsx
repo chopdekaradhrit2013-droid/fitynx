@@ -11,6 +11,7 @@ import {
   Dices,
   Layers,
   Loader2,
+  Luggage,
   Palette,
   Scale,
   Shirt,
@@ -20,15 +21,17 @@ import {
 import * as React from "react";
 import { toast } from "sonner";
 import { OutfitCanvasBuilder } from "@/components/tools/OutfitCanvasBuilder";
+import { CapsulePackingAssistant } from "@/components/tools/CapsulePackingAssistant";
 import { WeatherDecider } from "@/components/tools/WeatherDecider";
 import { ColorHarmonyMatcher } from "@/components/tools/ColorHarmonyMatcher";
 import { OutfitRoulette } from "@/components/tools/OutfitRoulette";
 import { OutfitFaceOff } from "@/components/tools/OutfitFaceOff";
 
-type StylistTab = "canvas" | "brief" | "weather" | "harmony" | "roulette" | "faceoff";
+type StylistTab = "canvas" | "packing" | "brief" | "weather" | "harmony" | "roulette" | "faceoff";
 
 const TOOLS = [
   { id: "canvas" as StylistTab, label: "Outfit Canvas", icon: Layers, desc: "Visual collage & moodboard" },
+  { id: "packing" as StylistTab, label: "Capsule Packing", icon: Luggage, desc: "Travel & vacation wardrobe" },
   { id: "brief" as StylistTab, label: "Stylist Studio", icon: Sparkles, desc: "Custom brief & Gemini AI" },
   { id: "weather" as StylistTab, label: "Weather Decider", icon: CloudSun, desc: "Live climate & layering" },
   { id: "harmony" as StylistTab, label: "Color Harmony", icon: Palette, desc: "Anchor piece matching" },
@@ -170,6 +173,9 @@ export default function StylistPage() {
           }}
         />
       )}
+
+      {/* Tab: Capsule Packing Assistant */}
+      {activeTab === "packing" && <CapsulePackingAssistant />}
 
       {/* Tab 1: Brief & Gemini Studio */}
       {activeTab === "brief" && (
