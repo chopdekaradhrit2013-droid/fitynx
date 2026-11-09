@@ -5,7 +5,7 @@ import { actions, useStore } from "@/lib/store";
 import { composeLooks, OCCASIONS, VIBES, WEATHER, type Brief } from "@/lib/stylist";
 import type { Look } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Loader2, Shirt, Sparkles, WandSparkles } from "lucide-react";
+import { Loader2, Shirt, Sparkles, Upload, WandSparkles } from "lucide-react";
 import * as React from "react";
 
 export default function StylistPage() {
@@ -35,7 +35,12 @@ export default function StylistPage() {
     return (
       <div className="space-y-10">
         <PageHeader eyebrow="The stylist" title="Ask for a feeling." />
-        <EmptyState icon={<Shirt className="size-7" />} title="Your wardrobe is empty." text="The stylist only uses clothes you own. Add a few pieces — or load the sample wardrobe — and come back." action={<LinkButton href="/app">Go to wardrobe</LinkButton>} />
+        <EmptyState
+          icon={<Shirt className="size-7" />}
+          title="No clothes uploaded yet"
+          text="Your wardrobe is empty. The stylist only builds outfits from photos of clothes you have uploaded. Upload your pieces in the Wardrobe to start composing looks."
+          action={<LinkButton href="/app">Upload clothes to wardrobe</LinkButton>}
+        />
       </div>
     );
   }

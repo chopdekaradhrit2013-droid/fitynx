@@ -1,8 +1,18 @@
 {
   "name": "fitynx",
   "private": true,
-  "workspaces": ["client"],
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "scripts": {
-    "build": "npm run build --workspace=fitynx-client"
+    "dev:client": "npm run dev --workspace=fitynx-client",
+    "dev:server": "npm run dev --workspace=fitynx-server",
+    "dev": "npm run dev:server & npm run dev:client",
+    "build:client": "npm run build --workspace=fitynx-client",
+    "build:server": "npm run build --workspace=fitynx-server",
+    "build": "npm run build:client && npm run build:server",
+    "check": "npm run check --workspace=fitynx-client",
+    "preview": "npm run preview --workspace=fitynx-client"
   }
 }

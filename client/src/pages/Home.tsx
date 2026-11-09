@@ -1,11 +1,13 @@
 import { Brand } from "@/components/site/Brand";
 import { Reveal } from "@/components/site/Reveal";
+import { UserMenu } from "@/components/site/UserMenu";
 import { Button } from "@/components/ui/button";
 import ClothingRailHero, { type RailGarment } from "@/components/ui/product-rail-gallery";
+import { useAuth } from "@/contexts/AuthContext";
 import { garmentDataUrl } from "@/lib/garments";
 import { buildSampleWardrobe } from "@/lib/sample";
 import type { GarmentType } from "@/lib/types";
-import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, HardDrive, Layers, Menu, Palette, Scissors, Shirt, Sparkles, X } from "lucide-react";
+import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, HardDrive, Layers, LogIn, Menu, Palette, Scissors, ShieldCheck, Shirt, Sparkles, UserPlus, X } from "lucide-react";
 import * as React from "react";
 import { Link } from "wouter";
 
@@ -34,7 +36,8 @@ const FEATURES = [
 ];
 
 const FAQ = [
-  { q: "Do I need to create an account?", a: "No. FITYNX opens straight into the studio. Your wardrobe is saved in your browser on this device, so there is nothing to sign up for and no password to lose." },
+  { q: "How do sign up and sign in work?", a: "FITYNX supports fast, secure sign-in with Google OAuth or email and password. Your personal account securely keeps your wardrobe, saved outfits, and styling history accessible to you." },
+  { q: "Can I use Google OAuth to sign in?", a: "Yes. Google OAuth is available as a one-click option. Simply click 'Continue with Google' to sign up or sign in instantly with your Google account." },
   { q: "Where do my photos go?", a: "Nowhere. Images are processed and stored locally in your browser. FITYNX has no upload server, so your photos are never transmitted, stored by us, or used to train anything." },
   { q: "Is the stylist really “AI”?", a: "FITYNX combines on-device image analysis (colour extraction, background removal) with a transparent styling engine that scores colour harmony, formality and weather suitability. It does not send your wardrobe to a third-party model, and it will only ever recommend pieces you actually own." },
   { q: "What kind of photos work best?", a: "A single garment laid flat or hung against a plain, evenly lit surface. That gives the cleanest cut-out and the most accurate colour. You can always correct the type and colour before saving." },
@@ -43,6 +46,7 @@ const FAQ = [
 ];
 
 export default function Home() {
+  const { user, isAuthenticated } = useAuth();
   const [open, setOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
   React.useEffect(() => {
@@ -62,15 +66,52 @@ export default function Home() {
           <nav className="hidden items-center gap-8 text-sm md:flex" aria-label="Primary">
             {NAV.map(n => <a key={n.href} href={n.href} className="text-muted-foreground transition-colors hover:text-foreground">{n.label}</a>)}
           </nav>
-          <div className="flex items-center gap-2">
-            <Button asChild size="sm" className="hidden sm:inline-flex"><Link href="/app">Open studio <ArrowRight className="size-4" /></Link></Button>
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <>
+                <UserMenu />
+                <Button asChild size="sm" className="hidden sm:inline-flex">
+                  <Link href="/app">Studio <ArrowRight className="size-4" /></Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+                  <Link href="/login">Sign in</Link>
+                </Button>
+                <Button asChild size="sm" className="hidden sm:inline-flex">
+                  <Link href="/signup">Create account <ArrowRight className="size-4" /></Link>
+                </Button>
+              </>
+            )}
             <button className="rounded-full p-2 text-muted-foreground md:hidden" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-label="Toggle navigation">{open ? <X className="size-5" /> : <Menu className="size-5" />}</button>
           </div>
         </div>
         {open && (
           <nav className="border-t border-border bg-background px-5 pb-5 pt-3 md:hidden" aria-label="Mobile">
             {NAV.map(n => <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="block border-b border-border py-3 text-sm">{n.label}</a>)}
-            <Button asChild className="mt-4 w-full"><Link href="/app">Open studio <ArrowRight className="size-4" /></Link></Button>
+            <div className="mt-4 space-y-2">
+              {isAuthenticated ? (
+                <>
+                  <div className="flex items-center justify-between py-2 border-b border-border">
+                    <span className="text-sm font-medium">{user?.name}</span>
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">{user?.provider}</span>
+                  </div>
+                  <Button asChild className="w-full">
+                    <Link href="/app">Open studio <ArrowRight className="size-4" /></Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/login">Sign in</Link>
+                  </Button>
+                  <Button asChild className="w-full">
+                    <Link href="/signup">Create account <ArrowRight className="size-4" /></Link>
+                  </Button>
+                </>
+              )}
+            </div>
           </nav>
         )}
       </header>
@@ -83,11 +124,24 @@ export default function Home() {
             <h1 className="mt-7 font-serif text-[clamp(3.2rem,7.4vw,7.2rem)] leading-[0.88] tracking-[-0.07em]">Dress from<br /><em className="not-italic text-[#F26A4B]">what’s yours.</em></h1>
             <p className="mt-8 max-w-lg text-base leading-8 text-muted-foreground md:text-lg">FITYNX turns the clothes you already own into a digital wardrobe, then composes complete, weather-aware outfits from it — with the reasoning behind every choice.</p>
             <div className="mt-10 flex flex-wrap items-center gap-3">
-              <Button asChild size="lg"><Link href="/app">Open the studio <ArrowRight className="size-4" /></Link></Button>
-              <Button asChild size="lg" variant="outline"><a href="#how">See how it works</a></Button>
+              {isAuthenticated ? (
+                <Button asChild size="lg">
+                  <Link href="/app">Open the studio <ArrowRight className="size-4" /></Link>
+                </Button>
+              ) : (
+                <>
+                  <Button asChild size="lg">
+                    <Link href="/signup">Get started free <ArrowRight className="size-4" /></Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline">
+                    <Link href="/login">Sign in</Link>
+                  </Button>
+                </>
+              )}
+              <Button asChild size="lg" variant="ghost"><a href="#how">See how it works</a></Button>
             </div>
             <ul className="mt-12 flex flex-wrap gap-x-7 gap-y-3 border-t border-border pt-6 text-xs text-muted-foreground">
-              {["No account needed", "Photos never leave your device", "Free to use"].map(t => <li key={t} className="inline-flex items-center gap-2"><span className="size-1 rounded-full bg-[#F26A4B]" />{t}</li>)}
+              {["Google OAuth & email sign-in", "Photos stay on your device", "Free to use"].map(t => <li key={t} className="inline-flex items-center gap-2"><span className="size-1 rounded-full bg-[#F26A4B]" />{t}</li>)}
             </ul>
           </div>
           <HeroVisual />
@@ -181,7 +235,7 @@ export default function Home() {
             {[
               { icon: HardDrive, t: "On-device storage", d: "Photos and data are saved in your browser, not on a remote database." },
               { icon: EyeOff, t: "No tracking of your wardrobe", d: "We don’t see what you own, what you save or what you plan." },
-              { icon: Layers, t: "No account, no profile", d: "There is nothing to sign up for, so there is no profile to leak." },
+              { icon: ShieldCheck, t: "Personal account security", d: "Sign in with Google OAuth or email — your wardrobe data is isolated securely for your personal account." },
               { icon: Droplets, t: "You’re in control", d: "Export a backup or erase everything in one click from Settings." },
             ].map(p => (
               <div key={p.t} className="bg-card p-6 md:p-8">
@@ -215,8 +269,27 @@ export default function Home() {
           <Reveal>
             <div className="grain relative overflow-hidden rounded-3xl bg-primary px-6 py-16 text-center text-primary-foreground md:px-12 md:py-24">
               <h2 className="mx-auto max-w-3xl font-serif text-4xl leading-[1.02] tracking-[-0.05em] md:text-7xl">Open your closet.<br /><em className="not-italic text-[#F26A4B]">Start dressing.</em></h2>
-              <p className="mx-auto mt-6 max-w-md text-sm leading-7 text-primary-foreground/70">No sign-up, no download. Add a few pieces — or load a sample wardrobe — and compose your first look in under a minute.</p>
-              <Button asChild size="lg" variant="secondary" className="mt-9"><Link href="/app">Open the studio <ArrowRight className="size-4" /></Link></Button>
+              <p className="mx-auto mt-6 max-w-md text-sm leading-7 text-primary-foreground/70">
+                {isAuthenticated
+                  ? "Welcome back. Your personal wardrobe and stylist are ready."
+                  : "Sign in with Google OAuth or create a free account to compose your first look in under a minute."}
+              </p>
+              <div className="mt-9 flex flex-wrap justify-center gap-3">
+                {isAuthenticated ? (
+                  <Button asChild size="lg" variant="secondary">
+                    <Link href="/app">Open the studio <ArrowRight className="size-4" /></Link>
+                  </Button>
+                ) : (
+                  <>
+                    <Button asChild size="lg" variant="secondary">
+                      <Link href="/signup">Create free account <ArrowRight className="size-4" /></Link>
+                    </Button>
+                    <Button asChild size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
+                      <Link href="/login">Sign in</Link>
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </Reveal>
         </section>
@@ -228,6 +301,12 @@ export default function Home() {
           <nav className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground" aria-label="Footer">
             {NAV.map(n => <a key={n.href} href={n.href} className="hover:text-foreground">{n.label}</a>)}
             <Link href="/app" className="hover:text-foreground">Studio</Link>
+            {!isAuthenticated ? (
+              <>
+                <Link href="/login" className="hover:text-foreground">Sign In</Link>
+                <Link href="/signup" className="hover:text-foreground">Sign Up</Link>
+              </>
+            ) : null}
           </nav>
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">© {new Date().getFullYear()} FITYNX</p>
         </div>

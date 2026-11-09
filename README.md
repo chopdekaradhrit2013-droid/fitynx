@@ -1,47 +1,86 @@
 # FITYNX — Private AI Wardrobe Studio
 
-A fast, static React site: a polished marketing page plus a working wardrobe studio (upload, cut-outs, colour analysis, outfit composer, saved looks, calendar). Everything runs in the browser — photos and data are stored locally in IndexedDB and never uploaded.
+A full-stack web application: a polished marketing page, an intelligent wardrobe studio, and a dedicated backend storing user accounts, photos, outfits, and calendar data so users can access their wardrobe whenever they return.
 
-**Stack:** Vite 7 · React 19 · TypeScript · Tailwind CSS 4 · wouter · IndexedDB. No backend, database or environment variables required.
+**Stack:** React 19 · Vite 7 · TypeScript · Tailwind CSS 4 · Express · Node.js · JWT · bcryptjs
+
+## Features
+
+- **Full-Stack Persistent Backend:** Stores user accounts, uploaded garments, background cutouts, saved outfits, and calendar plans with instant cross-session restoration.
+- **Google OAuth Integration:** Secure Google OAuth endpoint (`/api/auth/google`) with token verification, automatic account provisioning, and Google Identity Services (GIS) compatibility.
+- **Email & Password Authentication:** Bcrypt hashed password authentication with secure JWT tokens (`/api/auth/signup`, `/api/auth/signin`).
+- **User Data Isolation:** Every user's wardrobe, outfits, and calendar entries are isolated to their own account.
+- **On-Device Intelligent Stylist:** Rules-based color harmony, weather, and occasion engine that composes complete outfits using only the pieces the user has uploaded.
 
 ## Run locally
 
 ```bash
+# 1. Install dependencies
 npm install
-npm run dev        # http://localhost:3000
-npm run build      # production build → dist/
-npm run preview    # serve the production build
-npm run check      # type-check
+
+# 2. Run both backend server (port 3001) and frontend (port 5173)
+npm run dev
+
+# Or run separately:
+npm run dev:server    # Backend API server on http://localhost:3001
+npm run dev:client    # Vite frontend on http://localhost:5173
 ```
 
-## Deploy on Vercel
+- **Frontend:** [http://localhost:5173/](http://localhost:5173/)
+- **Backend API:** [http://localhost:3001/api/health](http://localhost:3001/api/health)
 
-1. Push this folder to a Git repository (GitHub/GitLab/Bitbucket).
-2. In Vercel choose **Add New → Project** and import the repo.
-3. Leave the detected settings — `vercel.json` already sets framework **Vite**, build command `npm run build`, output `dist`, SPA rewrites (so `/app/stylist` etc. work on refresh) and security/cache headers.
-4. Click **Deploy**. No environment variables are needed.
+## Backend API Endpoints
 
-Or with the CLI: `npm i -g vercel && vercel --prod`.
+- `POST /api/auth/signup` — Register with name, email, and password.
+- `POST /api/auth/signin` — Sign in with email and password.
+- `POST /api/auth/google` — Sign in / sign up with Google OAuth token or payload.
+- `GET /api/auth/me` — Retrieve the authenticated user profile.
+- `POST /api/auth/signout` — Sign out of the session.
+- `GET /api/wardrobe` — List all wardrobe items for the authenticated user.
+- `POST /api/wardrobe` — Upload/add garment items and photos.
+- `PATCH /api/wardrobe/:id` — Update garment details.
+- `DELETE /api/wardrobe/:id` — Delete a garment piece.
+- `DELETE /api/wardrobe` — Wipe all wardrobe data for the user.
+- `GET /api/looks` — Retrieve saved and composed outfits.
+- `POST /api/looks` — Save composed outfits.
+- `PATCH /api/looks/:id/toggle` — Toggle saved status for an outfit.
+- `GET /api/plans` — Retrieve outfit calendar schedule.
+- `POST /api/plans` — Schedule an outfit for a specific date.
+- `DELETE /api/plans/:id` — Remove a calendar entry.
+
+## Google OAuth Configuration
+
+To connect real Google OAuth via Google Cloud Console:
+1. Create an OAuth 2.0 Client ID (Web Application) in Google Cloud Console.
+2. Add `http://localhost:5173` to **Authorized JavaScript origins**.
+3. Set your Client ID in `client/.env`:
+   ```bash
+   VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   ```
+   *(Or configure it live via Studio Settings → Integrations).*
 
 ## Project layout
 
 ```
-client/
-  index.html            SEO / Open Graph meta, fonts
-  public/               favicon, og-image, robots.txt
+client/                 # Frontend Vite React SPA
   src/
-    pages/Home.tsx      landing page
-    pages/studio/       Wardrobe · Stylist · Saved · Calendar · Settings
-    lib/                store (IndexedDB), imaging (colour + cut-out), stylist engine, sample data
-    components/         site UI + the interactive closet rail
-vercel.json             Vercel config
+    contexts/           # AuthContext & ThemeContext
+    components/
+      auth/             # ProtectedRoute & GoogleOAuthModal
+      site/             # UserMenu, Brand, LookCard, Modal, Reveal
+      ui/               # Button, Tooltip, Sonner toast, Product rail gallery
+    pages/
+      Home.tsx          # Landing page
+      AuthPage.tsx      # Sign in & Sign up page with Google OAuth
+      studio/           # Wardrobe · Stylist · Saved · Calendar · Settings
+    library/            # api, store, imaging, stylist engine, types
+
+server/                 # Backend Node.js / Express API
+  data/                 # Persistent database storage (database.json)
+  src/
+    routes/             # auth, wardrobe, looks, plans routers
+    auth.ts             # JWT generation/verification, bcrypt hashing, Google token parsing
+    db.ts               # Atomic JSON database manager
+    index.ts            # Express server entry point
+    types.ts            # Backend data types and schemas
 ```
-
-## How the "stylist" works
-
-It is an on-device rules engine, not a hosted LLM: it scores every candidate outfit for colour harmony (neutrals, tonal, accent, complementary), occasion formality, weather suitability and formality consistency, picks up to three diverse looks, and writes the explanation from those scores. It only uses pieces in the user's wardrobe. If you later want an LLM, add a Vercel Function (e.g. `api/stylist.ts`) that holds the API key server-side and call it from `Stylist.tsx`.
-
-## Notes
-
-- Background removal is a lightweight client-side method that works best on plain backdrops; it automatically falls back to the original photo when the result looks unreliable.
-- Data lives per-browser. Settings → Export downloads a JSON backup.

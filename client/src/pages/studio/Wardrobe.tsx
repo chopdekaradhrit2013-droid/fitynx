@@ -3,7 +3,6 @@ import { EmptyState, Field, PageHeader, Thumb, itemImage } from "@/components/si
 import { Button } from "@/components/ui/button";
 import ClothingRailHero, { type GarmentKind, type RailGarment } from "@/components/ui/product-rail-gallery";
 import { nameColor } from "@/lib/color";
-import { buildSampleWardrobe } from "@/lib/sample";
 import { actions, uid, useStore } from "@/lib/store";
 import { analyzeFile, defaultName, type Analysis } from "@/lib/imaging";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group, type WardrobeItem } from "@/lib/types";
@@ -23,7 +22,6 @@ export default function Wardrobe() {
   const [group, setGroup] = React.useState<Group | "all">("all");
   const [addOpen, setAddOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<WardrobeItem | null>(null);
-  const hasSamples = items.some(i => i.sample);
 
   const filtered = items.filter(i => {
     const g = GARMENT_TYPES[i.type].group;
@@ -37,16 +35,26 @@ export default function Wardrobe() {
     details: [GARMENT_TYPES[i.type].label, i.colorName, GROUP_LABELS[GARMENT_TYPES[i.type].group]],
   }));
 
-  const loadSamples = () => { actions.addItems(buildSampleWardrobe()); toast.success("Sample wardrobe added", { description: "14 illustrated pieces to explore. Remove them any time in Settings." }); };
-
   return (
     <div className="space-y-14">
-      <PageHeader eyebrow="Your collection" title="Wardrobe." text="Everything you own, catalogued on this device. Add a photo and FITYNX reads the colour, lifts the garment off its background, and gets it ready to style."
-        action={<Button onClick={() => setAddOpen(true)}><Plus className="size-4" /> Add pieces</Button>} />
+      <PageHeader
+        eyebrow="Your collection"
+        title="Wardrobe."
+        text="Everything you own, catalogued on this device. Add photos and FITYNX reads the colour, lifts the garment off its background, and gets it ready to style."
+        action={<Button onClick={() => setAddOpen(true)}><Plus className="size-4" /> Add pieces</Button>}
+      />
 
       {items.length === 0 ? (
-        <EmptyState icon={<Shirt className="size-7" />} title="Start with one favourite piece." text="Upload a photo of something you wear often — a flat-lay on a plain surface works best. Or explore the studio first with a sample wardrobe."
-          action={<><Button onClick={() => setAddOpen(true)}><Upload className="size-4" /> Upload clothing</Button><Button variant="outline" onClick={loadSamples}>Load sample wardrobe</Button></>} />
+        <EmptyState
+          icon={<Shirt className="size-7" />}
+          title="No clothes uploaded yet"
+          text="Your digital wardrobe is empty. Upload clear photos of your clothing pieces (laid flat or hung against a plain backdrop) to get started with automatic background removal and styling."
+          action={
+            <Button onClick={() => setAddOpen(true)}>
+              <Upload className="size-4" /> Upload your clothes
+            </Button>
+          }
+        />
       ) : (
         <section>
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -67,10 +75,16 @@ export default function Wardrobe() {
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {filtered.map(item => (
                 <button key={item.id} onClick={() => setEditing(item)} className="group overflow-hidden rounded-xl border border-border bg-card text-left transition-shadow hover:shadow-[0_12px_32px_rgba(30,30,30,0.1)]">
-                  <div className="relative aspect-[4/5] bg-background p-4">
-                    <img src={itemImage(item)} alt={item.name} loading="lazy" className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]" />
+                  <div className="relative aspect-[4/5] bg-background p-4 flex items-center justify-center">
+                    {itemImage(item) ? (
+                      <img src={itemImage(item)} alt={item.name} loading="lazy" className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]" />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-3">
+                        <Shirt className="size-8 opacity-40" />
+                        <span className="mt-2 text-[11px]">No photo uploaded</span>
+                      </div>
+                    )}
                     {item.cutout && <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground"><Scissors className="size-3" /> Cut out</span>}
-                    {item.sample && <span className="absolute right-3 top-3 rounded-full bg-card/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Sample</span>}
                   </div>
                   <div className="p-3.5">
                     <h3 className="truncate text-sm font-medium">{item.name}</h3>
@@ -84,7 +98,6 @@ export default function Wardrobe() {
       )}
 
       {items.length >= 2 && <ClothingRailHero items={rail} eyebrow="Interactive closet" heading="Handle your wardrobe." caption="Brush along the rail, then open a piece for details." />}
-      {items.length > 0 && !hasSamples && items.length < 4 && <p className="text-center text-xs text-muted-foreground">Tip: the stylist works best with a few tops, bottoms and shoes. <button onClick={loadSamples} className="underline underline-offset-4 hover:text-foreground">Add the sample wardrobe</button> to see it in action.</p>}
 
       <AddModal open={addOpen} onClose={() => setAddOpen(false)} />
       <EditModal item={editing} onClose={() => setEditing(null)} />

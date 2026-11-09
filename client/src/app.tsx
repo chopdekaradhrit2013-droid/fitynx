@@ -5,8 +5,11 @@ import { Route, Switch, useLocation } from "wouter";
 import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Home from "./pages/Home";
 import Studio from "./pages/studio/Studio";
+import AuthPage from "./pages/AuthPage";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -18,16 +21,20 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <TooltipProvider>
-          <Toaster />
-          <ScrollToTop />
-          <Switch>
-            <Route path="/" component={Home} />
-            <Route path="/app" component={Studio} />
-            <Route path="/app/:section" component={Studio} />
-            <Route component={NotFound} />
-          </Switch>
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <ScrollToTop />
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/login">{() => <AuthPage initialMode="login" />}</Route>
+              <Route path="/signup">{() => <AuthPage initialMode="signup" />}</Route>
+              <Route path="/app">{() => <ProtectedRoute component={Studio} />}</Route>
+              <Route path="/app/:section">{() => <ProtectedRoute component={Studio} />}</Route>
+              <Route component={NotFound} />
+            </Switch>
+          </TooltipProvider>
+        </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import * as React from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Shirt } from "lucide-react";
 import type { WardrobeItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -45,9 +45,17 @@ export function Field({ label, children, hint }: { label: string; children: Reac
 export const itemImage = (i: WardrobeItem) => i.cutout || i.image;
 
 export function Thumb({ item, className }: { item: WardrobeItem; className?: string }) {
+  const src = itemImage(item);
   return (
     <div className={cn("flex items-center justify-center overflow-hidden rounded-lg bg-background", className)}>
-      <img src={itemImage(item)} alt={item.name} loading="lazy" className="h-full w-full object-contain p-1.5" />
+      {src ? (
+        <img src={src} alt={item.name} loading="lazy" className="h-full w-full object-contain p-1.5" />
+      ) : (
+        <div className="flex flex-col items-center justify-center p-2 text-center text-muted-foreground">
+          <Shirt className="size-4 opacity-50" />
+          <span className="mt-1 text-[8px] uppercase tracking-wider">No photo</span>
+        </div>
+      )}
     </div>
   );
 }

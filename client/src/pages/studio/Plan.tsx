@@ -44,7 +44,22 @@ export default function Plan() {
     <div className="space-y-10">
       <PageHeader eyebrow="The rhythm" title="Outfit calendar." text="Decide tomorrow’s outfit tonight. Assign a saved look to any day." />
       {looks.length === 0 && plan.length === 0 ? (
-        <EmptyState icon={<CalendarDays className="size-7" />} title="Your calendar is clear." text="Save a look first, then place it on a day that deserves a little more intention." action={<LinkButton href="/app/stylist">Open the stylist</LinkButton>} />
+        <EmptyState
+          icon={<CalendarDays className="size-7" />}
+          title={items.length === 0 ? "No clothes uploaded yet" : "Your calendar is clear."}
+          text={
+            items.length === 0
+              ? "You haven’t uploaded any clothes yet. Upload photos of your wardrobe pieces to begin composing and scheduling your daily outfits."
+              : "Save a look first, then place it on a day that deserves a little more intention."
+          }
+          action={
+            items.length === 0 ? (
+              <LinkButton href="/app">Upload clothes to wardrobe</LinkButton>
+            ) : (
+              <LinkButton href="/app/stylist">Open the stylist</LinkButton>
+            )
+          }
+        />
       ) : (
         <div className="grid gap-6 lg:grid-cols-[.7fr_1.3fr]">
           <div className="h-fit rounded-2xl border border-border bg-card p-5 md:p-7">
@@ -60,9 +75,18 @@ export default function Plan() {
               <Button className="w-full" disabled={!lookId || !date} onClick={add}><Plus className="size-4" /> Add to calendar</Button>
             </div>
           </div>
+
           <div className="space-y-8">
-            <section><h2 className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Upcoming</h2>{upcoming.length ? <ul className="space-y-3">{upcoming.map(p => row(p))}</ul> : <p className="text-sm text-muted-foreground">Nothing planned yet.</p>}</section>
-            {past.length > 0 && <section><h2 className="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Earlier</h2><ul className="space-y-3">{past.slice(0, 8).map(p => row(p, true))}</ul></section>}
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Upcoming</p>
+              {upcoming.length === 0 ? <p className="mt-3 text-xs text-muted-foreground">No upcoming outfits planned.</p> : <ul className="mt-4 space-y-2.5">{upcoming.map(p => row(p))}</ul>}
+            </div>
+            {past.length > 0 && (
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Past outfits</p>
+                <ul className="mt-4 space-y-2.5">{past.map(p => row(p, true))}</ul>
+              </div>
+            )}
           </div>
         </div>
       )}
