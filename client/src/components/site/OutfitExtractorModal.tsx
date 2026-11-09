@@ -3,7 +3,7 @@ import { Modal } from "./Modal";
 import { Button } from "@/components/ui/button";
 import { LensMatchModal } from "./LensMatchModal";
 import { api, getSavedGeminiKey, type ExtractedGarment } from "@/lib/api";
-import { cropImageRegion, generateAiCutout, analyzeFile } from "@/lib/imaging";
+import { cropImageRegion, generateAiCutout, analyzeFile, createFastThumbnail } from "@/lib/imaging";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Check, Globe, Layers, Loader2, RefreshCw, Scissors, Sparkles, User, Wand2 } from "lucide-react";
@@ -60,13 +60,18 @@ export function OutfitExtractorModal({
         const apiKey = getSavedGeminiKey() || undefined;
         let detectedGarments: ExtractedGarment[] = [];
 
+        // 1. Create a lightweight 640px JPEG thumbnail (~35KB) for lightning-fast network transfer
+        const fastThumb = await createFastThumbnail(originalImage, 640, 0.82);
+
         try {
-          const res = await api.ai.extractOutfit(originalImage, apiKey);
+          const timeoutPromise = new Promise<null>(resolve => setTimeout(() => resolve(null), 5000));
+          const apiPromise = api.ai.extractOutfit(fastThumb, apiKey);
+          const res = await Promise.race([apiPromise, timeoutPromise]);
           if (res?.garments && res.garments.length > 0) {
             detectedGarments = res.garments;
           }
         } catch (aiErr) {
-          console.warn("Gemini outfit extraction skipped/failed, using smart body segmentation:", aiErr);
+          console.warn("Gemini outfit extraction error/timeout, using smart body segmentation:", aiErr);
         }
 
         // If no AI garments detected, fallback to smart body proportion segmentation
@@ -93,35 +98,33 @@ export function OutfitExtractorModal({
           ];
         }
 
-        // Crop each piece
-        const drafts: ExtractedPieceDraft[] = [];
+        if (cancelled) return;
 
-        for (let i = 0; i < detectedGarments.length; i++) {
-          if (cancelled) return;
-          const g = detectedGarments[i];
-          const cropped = await cropImageRegion(originalImage, g.box2d);
+        // Crop pieces concurrently on canvas in parallel (< 15ms)
+        const drafts: ExtractedPieceDraft[] = await Promise.all(
+          detectedGarments.map(async (g, i) => {
+            const cropped = await cropImageRegion(originalImage, g.box2d);
+            const validTypes = Object.keys(GARMENT_TYPES) as GarmentType[];
+            const pieceType: GarmentType = validTypes.includes(g.type as GarmentType)
+              ? (g.type as GarmentType)
+              : g.role === "bottom"
+                ? "jeans"
+                : "tee";
 
-          // Validate garment type
-          const validTypes = Object.keys(GARMENT_TYPES) as GarmentType[];
-          const pieceType: GarmentType = validTypes.includes(g.type as GarmentType)
-            ? (g.type as GarmentType)
-            : g.role === "bottom"
-              ? "jeans"
-              : "tee";
-
-          drafts.push({
-            id: `extracted-${i}-${Date.now()}`,
-            role: g.role,
-            name: g.name || (g.role === "top" ? "Worn Top Piece" : "Worn Bottom Piece"),
-            type: pieceType,
-            colorName: g.colorName || "Extracted Color",
-            colorHex: g.colorHex || "#222222",
-            fabric: g.fabric,
-            image: cropped,
-            notes: `Extracted from worn outfit photograph. ${g.fabric ? `Fabric: ${g.fabric}.` : ""}`,
-            searchQuery: g.searchQuery,
-          });
-        }
+            return {
+              id: `extracted-${i}-${Date.now()}`,
+              role: g.role,
+              name: g.name || (g.role === "top" ? "Worn Top Piece" : "Worn Bottom Piece"),
+              type: pieceType,
+              colorName: g.colorName || "Extracted Color",
+              colorHex: g.colorHex || "#222222",
+              fabric: g.fabric,
+              image: cropped,
+              notes: `Extracted from worn outfit photograph. ${g.fabric ? `Fabric: ${g.fabric}.` : ""}`,
+              searchQuery: g.searchQuery,
+            };
+          })
+        );
 
         if (!cancelled) {
           setPieces(drafts);

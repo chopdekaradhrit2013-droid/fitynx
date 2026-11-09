@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import ClothingRailHero, { type GarmentKind, type RailGarment } from "@/components/ui/product-rail-gallery";
 import { nameColor } from "@/lib/color";
 import { actions, uid, useStore } from "@/lib/store";
-import { analyzeFile, defaultName, generateAiCutout, readFile, type Analysis } from "@/lib/imaging";
+import { analyzeFile, createFastThumbnail, defaultName, generateAiCutout, readFile, type Analysis } from "@/lib/imaging";
 import { api, getSavedGeminiKey } from "@/lib/api";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group, type WardrobeItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -331,7 +331,8 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     setAnalyzingKey(d.key);
     try {
       const apiKey = getSavedGeminiKey() || undefined;
-      const res = await api.ai.analyze(d.cutout || d.image, apiKey);
+      const fastThumb = await createFastThumbnail(d.cutout || d.image, 640);
+      const res = await api.ai.analyze(fastThumb, apiKey);
       if (res?.analysis) {
         const a = res.analysis;
         patch(d.key, {
