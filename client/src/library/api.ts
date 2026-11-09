@@ -279,6 +279,21 @@ export const api = {
         body: JSON.stringify({ image, apiKey }),
       });
     },
+
+    async chat(params: {
+      message: string;
+      history?: { role: "user" | "model"; text: string }[];
+      items: WardrobeItem[];
+      apiKey?: string;
+    }): Promise<{
+      reply: string;
+      recommendedLook?: { title: string; itemIds: string[] };
+    }> {
+      return request("/api/ai/chat", {
+        method: "POST",
+        body: JSON.stringify(params),
+      });
+    },
   },
 
   weather: {

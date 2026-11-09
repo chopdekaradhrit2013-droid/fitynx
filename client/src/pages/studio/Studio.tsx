@@ -1,5 +1,6 @@
 import { Brand } from "@/components/site/Brand";
 import { UserMenu } from "@/components/site/UserMenu";
+import { AiStylistDrawer } from "@/components/site/AiStylistDrawer";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -28,6 +29,7 @@ export default function Studio() {
   const params = useParams() as { section?: string };
   const section = params.section ?? "wardrobe";
   const [navOpen, setNavOpen] = React.useState(false);
+  const [stylistChatOpen, setStylistChatOpen] = React.useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
   const [, setLocation] = useLocation();
@@ -185,7 +187,16 @@ export default function Studio() {
             </button>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{today}</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setStylistChatOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs h-8 border-primary/40 hover:bg-primary/10"
+            >
+              <Sparkles className="size-3.5 text-[#F26A4B]" />
+              <span className="hidden sm:inline">Ask Stylist</span>
+            </Button>
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}>
               {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
             </Button>
@@ -198,6 +209,19 @@ export default function Studio() {
             section === "wardrobe" ? <Wardrobe /> : section === "stylist" ? <StylistPage /> : section === "saved" ? <Saved /> : section === "calendar" ? <Plan /> : <Settings />}
         </div>
       </main>
+
+      {/* Floating Ask Stylist Button */}
+      <button
+        type="button"
+        onClick={() => setStylistChatOpen(true)}
+        className="fixed bottom-6 right-6 z-30 flex items-center gap-2 rounded-full border border-primary/40 bg-card px-4 py-2.5 text-xs font-medium text-foreground shadow-xl transition-all duration-200 hover:scale-105 hover:border-primary active:scale-95"
+      >
+        <Sparkles className="size-4 text-[#F26A4B] animate-pulse" />
+        <span>Ask Stylist</span>
+      </button>
+
+      {/* AI Stylist Drawer */}
+      <AiStylistDrawer open={stylistChatOpen} onClose={() => setStylistChatOpen(false)} />
     </div>
   );
 }

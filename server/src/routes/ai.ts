@@ -342,5 +342,124 @@ Return ONLY valid JSON matching this exact structure:
   }
 });
 
+// POST /api/ai/chat - Interactive Stylist Chatbot Drawer
+router.post("/chat", async (req, res): Promise<void> => {
+  try {
+    const { message, history, items, apiKey: customKey } = req.body;
+    const apiKey = getApiKey(customKey);
+
+    if (!apiKey) {
+      res.status(400).json({
+        error: "Google Gemini API key required. Please configure your key in Studio Settings.",
+      });
+      return;
+    }
+
+    if (!message || typeof message !== "string") {
+      res.status(400).json({ error: "Message is required" });
+      return;
+    }
+
+    const itemsSummary = (Array.isArray(items) ? items : []).map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      color: item.colorName,
+      colorHex: item.colorHex,
+      notes: item.notes || "",
+    }));
+
+    const systemPrompt = `You are the FITYNX AI Stylist — an elite, minimalist, and encouraging fashion director and personal stylist.
+You are helping the user choose what to wear, give color theory advice, and elevate their personal style.
+
+USER'S CLOSET INVENTORY:
+${JSON.stringify(itemsSummary, null, 2)}
+
+GUIDELINES:
+1. Always prioritize pieces from the user's closet inventory above whenever they ask for outfit suggestions.
+2. When you recommend specific pieces from their wardrobe, mention them by their exact name and tag their ID like [item:ITEM_ID] so the app can render interactive piece cards.
+3. Keep your advice stylish, concise, and constructive (mention silhouettes, proportions, french tucks, cuffing, or shoe choices).
+4. If you suggest a complete outfit, also end your response with a JSON block:
+\`\`\`look
+{
+  "title": "Title of the suggested outfit",
+  "itemIds": ["id1", "id2", "id3"]
+}
+\`\`\``;
+
+    // Convert past history to Gemini contents format
+    const contents: any[] = [
+      {
+        role: "user",
+        parts: [{ text: systemPrompt }],
+      },
+      {
+        role: "model",
+        parts: [{ text: "Understood. I am your FITYNX Personal Stylist. I know every piece in your wardrobe and will help you create elevated, confident outfits for any occasion or weather." }],
+      },
+    ];
+
+    if (Array.isArray(history)) {
+      for (const h of history.slice(-6)) {
+        contents.push({
+          role: h.role === "user" ? "user" : "model",
+          parts: [{ text: h.text }],
+        });
+      }
+    }
+
+    // Append current user message
+    contents.push({
+      role: "user",
+      parts: [{ text: message }],
+    });
+
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1000,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      res.status(response.status).json({ error: `Gemini stylist chat failed: ${errorText}` });
+      return;
+    }
+
+    const geminiData = await response.json();
+    const rawReply = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't compose a reply at this moment.";
+
+    // Parse any embedded ```look block
+    let replyText = rawReply;
+    let recommendedLook: { title: string; itemIds: string[] } | undefined;
+
+    const lookMatch = rawReply.match(/```look\s*([\s\S]*?)\s*```/);
+    if (lookMatch) {
+      try {
+        recommendedLook = JSON.parse(lookMatch[1]);
+        replyText = rawReply.replace(/```look\s*[\s\S]*?\s*```/, "").trim();
+      } catch {
+        /* noop */
+      }
+    }
+
+    res.json({
+      reply: replyText,
+      recommendedLook,
+    });
+  } catch (err) {
+    console.error("AI chat error:", err);
+    res.status(500).json({ error: "Failed to generate AI stylist response" });
+  }
+});
+
 export default router;
 
