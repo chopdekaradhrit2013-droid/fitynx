@@ -57,6 +57,48 @@ export async function generateAiCutout(imageSource: string | Blob | File): Promi
   }
 }
 
+/** Crops a specific sub-region [ymin, xmin, ymax, xmax] (0-1000 normalized) from an image data URL */
+export async function cropImageRegion(
+  imageSource: string,
+  box2d: [number, number, number, number],
+  paddingRatio = 0.03
+): Promise<string> {
+  const img = await loadImage(imageSource);
+  let [ymin, xmin, ymax, xmax] = box2d;
+  if (ymax <= 1 && xmax <= 1) {
+    ymin *= 1000;
+    xmin *= 1000;
+    ymax *= 1000;
+    xmax *= 1000;
+  }
+  const origW = img.naturalWidth || img.width;
+  const origH = img.naturalHeight || img.height;
+
+  const padY = (ymax - ymin) * paddingRatio;
+  const padX = (xmax - xmin) * paddingRatio;
+
+  const sy = Math.max(0, ((ymin - padY) / 1000) * origH);
+  const sx = Math.max(0, ((xmin - padX) / 1000) * origW);
+  const ey = Math.min(origH, ((ymax + padY) / 1000) * origH);
+  const ex = Math.min(origW, ((xmax + padX) / 1000) * origW);
+
+  const sw = Math.max(1, ex - sx);
+  const sh = Math.max(1, ey - sy);
+
+  const maxDimension = 1200;
+  const scale = Math.min(1, maxDimension / Math.max(sw, sh));
+  const cw = Math.max(1, Math.round(sw * scale));
+  const ch = Math.max(1, Math.round(sh * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
+
+  return canvas.toDataURL("image/png");
+}
+
 /** Flood-fill from the image border to remove a plain background. Returns null if the result looks unreliable. */
 function removeBackground(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number): string | null {
   const data = ctx.getImageData(0, 0, w, h);

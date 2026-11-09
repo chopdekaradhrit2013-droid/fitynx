@@ -1,15 +1,16 @@
 import { LensMatchModal } from "@/components/site/LensMatchModal";
+import { OutfitExtractorModal, type ExtractedPieceDraft } from "@/components/site/OutfitExtractorModal";
 import { Modal } from "@/components/site/Modal";
 import { EmptyState, Field, PageHeader, Thumb, itemImage } from "@/components/site/studio-ui";
 import { Button } from "@/components/ui/button";
 import ClothingRailHero, { type GarmentKind, type RailGarment } from "@/components/ui/product-rail-gallery";
 import { nameColor } from "@/lib/color";
 import { actions, uid, useStore } from "@/lib/store";
-import { analyzeFile, defaultName, generateAiCutout, type Analysis } from "@/lib/imaging";
+import { analyzeFile, defaultName, generateAiCutout, readFile, type Analysis } from "@/lib/imaging";
 import { api, getSavedGeminiKey } from "@/lib/api";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group, type WardrobeItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check, GalleryHorizontal, Globe, LayoutGrid, Loader2, Plus, Scissors, Search, Shirt, Sparkles, Trash2, Upload, WandSparkles } from "lucide-react";
+import { Check, GalleryHorizontal, Globe, LayoutGrid, Loader2, Plus, Scissors, Search, Shirt, Sparkles, Trash2, Upload, User, WandSparkles } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -268,7 +269,9 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [lensDraft, setLensDraft] = React.useState<Draft | null>(null);
   const [cuttingKey, setCuttingKey] = React.useState<string | null>(null);
   const [analyzingKey, setAnalyzingKey] = React.useState<string | null>(null);
+  const [extractorImage, setExtractorImage] = React.useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const extractorInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => { if (!open) { setDrafts([]); setBusy(false); } }, [open]);
 
@@ -286,6 +289,23 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     setDrafts(d => [...d, ...next]);
     setBusy(false);
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const handleExtractorConfirm = (pieces: ExtractedPieceDraft[]) => {
+    const newDrafts: Draft[] = pieces.map(p => ({
+      key: uid(),
+      fileName: `${p.name}.png`,
+      name: p.name,
+      type: p.type,
+      colorName: p.colorName,
+      colorHex: p.colorHex,
+      image: p.image,
+      cutout: p.cutout,
+      typeGuessed: false,
+    }));
+    setDrafts(prev => [...prev, ...newDrafts]);
+    setExtractorImage(null);
+    toast.success(`Extracted ${pieces.length} pieces from worn outfit!`);
   };
 
   const patch = (key: string, p: Partial<Draft>) => setDrafts(d => d.map(x => (x.key === key ? { ...x, ...p } : x)));
@@ -348,10 +368,36 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           <span className="mt-1 text-xs text-muted-foreground">JPG, PNG or WEBP · up to 15 MB each · photos stay on this device</span>
         </button>
 
+        {/* Worn outfit extractor prompt */}
+        <div className="mt-3 flex items-center justify-center">
+          <input
+            ref={extractorInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async e => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const url = await readFile(file);
+                setExtractorImage(url);
+              }
+              if (e.target) e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => extractorInputRef.current?.click()}
+            className="inline-flex items-center gap-2 rounded-full border border-dashed border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+          >
+            <User className="size-3.5 text-[#F26A4B]" />
+            <span>Photo has someone wearing clothes? Extract Top & Bottom</span>
+          </button>
+        </div>
+
         {drafts.length > 0 && (
           <>
             <p className="mt-6 text-xs leading-5 text-muted-foreground">
-              Review your pieces. Use <strong>AI Cutout</strong> to remove backdrops, or <strong>Lens Match</strong> to find clean catalog product photos online.
+              Review your pieces. Use <strong>AI Cutout</strong> to remove backdrops, <strong>Extract Top & Bottom</strong> to split worn clothes, or <strong>Lens Match</strong> for studio flat-lays.
             </p>
             <ul className="mt-4 space-y-3">
               {drafts.map(d => (
@@ -392,17 +438,29 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                     </Field>
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-foreground block">AI Assist</label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={analyzingKey === d.key}
-                        onClick={() => handleGeminiAnalyze(d)}
-                        className="w-full text-xs h-9 font-normal justify-start gap-1.5"
-                      >
-                        {analyzingKey === d.key ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5 text-[#F26A4B]" />}
-                        Gemini Auto-Tag
-                      </Button>
+                      <div className="flex flex-col gap-1.5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={analyzingKey === d.key}
+                          onClick={() => handleGeminiAnalyze(d)}
+                          className="w-full text-xs h-8 font-normal justify-start gap-1.5"
+                        >
+                          {analyzingKey === d.key ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5 text-[#F26A4B]" />}
+                          Gemini Auto-Tag
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setExtractorImage(d.image)}
+                          className="w-full text-xs h-8 font-normal justify-start gap-1.5"
+                        >
+                          <Scissors className="size-3.5 text-[#F26A4B]" />
+                          Extract Top & Bottom
+                        </Button>
+                      </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground sm:col-span-2 pt-1">
                       <label className="inline-flex items-center gap-2">
@@ -422,6 +480,16 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           </>
         )}
       </Modal>
+
+      {/* Outfit Extractor Modal */}
+      {extractorImage && (
+        <OutfitExtractorModal
+          open={true}
+          originalImage={extractorImage}
+          onClose={() => setExtractorImage(null)}
+          onConfirm={handleExtractorConfirm}
+        />
+      )}
 
       {/* Lens Match Modal for Draft */}
       {lensDraft && (

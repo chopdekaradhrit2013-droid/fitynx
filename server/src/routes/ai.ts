@@ -113,6 +113,122 @@ Return ONLY valid JSON matching this exact structure:
   }
 });
 
+// POST /api/ai/extract-outfit - Extract top, bottom, and pieces from photo of a person wearing clothes
+router.post("/extract-outfit", async (req, res): Promise<void> => {
+  try {
+    const { image, apiKey: customKey } = req.body;
+    const apiKey = getApiKey(customKey);
+
+    if (!apiKey) {
+      res.status(400).json({
+        error: "Google Gemini API key required. Add GEMINI_API_KEY to server/.env or configure in Studio Settings.",
+      });
+      return;
+    }
+
+    if (!image || typeof image !== "string") {
+      res.status(400).json({ error: "Outfit image is required" });
+      return;
+    }
+
+    let mimeType = "image/jpeg";
+    let base64Data = image;
+
+    if (image.startsWith("data:")) {
+      const match = image.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        mimeType = match[1];
+        base64Data = match[2];
+      }
+    }
+
+    const prompt = `You are an expert visual fashion AI.
+The user uploaded an image that contains clothes worn by a person (e.g. mirror selfie, lookbook, street style).
+Analyze the image and detect the distinct pieces of clothing worn by the person:
+Specifically look for:
+1. Top (tee, shirt, knit, hoodie, jacket, coat, blazer)
+2. Bottom (trousers, jeans, shorts, skirt)
+3. Dress (if wearing a single dress instead of top/bottom)
+4. Shoes (sneakers, boots, loafers) - if visible
+
+For EACH detected piece of clothing, detect its 2D bounding box normalized from 0 to 1000: [ymin, xmin, ymax, xmax].
+Important: Ensure the box covers the full garment from neckline/collar/waist to hem.
+
+Return ONLY valid JSON matching this exact structure:
+{
+  "hasPerson": true,
+  "garments": [
+    {
+      "role": "top",
+      "type": "one of: tee, shirt, knit, hoodie, jacket, coat, blazer",
+      "name": "Concise product title, e.g. Vintage Washed Charcoal Oversized Tee",
+      "colorName": "Color name, e.g. Charcoal Grey",
+      "colorHex": "Hex color, e.g. #3A3A3C",
+      "fabric": "e.g. 100% Heavyweight Cotton",
+      "box2d": [180, 240, 520, 760],
+      "searchQuery": "washed charcoal oversized t-shirt product flat lay"
+    },
+    {
+      "role": "bottom",
+      "type": "one of: trousers, jeans, shorts, skirt",
+      "name": "Concise product title, e.g. Straight Leg Raw Indigo Jeans",
+      "colorName": "Color name, e.g. Indigo Blue",
+      "colorHex": "Hex color, e.g. #22344D",
+      "fabric": "e.g. Raw Denim",
+      "box2d": [490, 260, 920, 740],
+      "searchQuery": "straight leg raw indigo jeans flat lay"
+    }
+  ]
+}`;
+
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Data,
+                },
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          response_mime_type: "application/json",
+          temperature: 0.1,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      res.status(response.status).json({ error: `Gemini outfit extraction failed: ${errorText}` });
+      return;
+    }
+
+    const geminiData = await response.json();
+    const rawContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!rawContent) {
+      res.status(500).json({ error: "Gemini did not return extraction data" });
+      return;
+    }
+
+    const parsed = JSON.parse(rawContent);
+    res.json(parsed);
+  } catch (err) {
+    console.error("AI extract-outfit error:", err);
+    res.status(500).json({ error: "Failed to extract outfit pieces with Gemini" });
+  }
+});
+
 // POST /api/ai/style - Editorial outfit composition
 router.post("/style", async (req, res): Promise<void> => {
   try {

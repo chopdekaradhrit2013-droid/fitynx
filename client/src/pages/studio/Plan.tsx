@@ -10,7 +10,8 @@ const fmt = (iso: string) => new Intl.DateTimeFormat("en", { weekday: "short", d
 
 export default function Plan() {
   const allLooks = useStore(s => s.looks);
-  const looks = allLooks.filter(l => l.saved);
+  const savedLooks = allLooks.filter(l => l.saved);
+  const recentLooks = allLooks.filter(l => !l.saved).slice(0, 8);
   const plan = useStore(s => s.plan);
   const items = useStore(s => s.items);
   const [date, setDate] = React.useState(today());
@@ -43,14 +44,14 @@ export default function Plan() {
   return (
     <div className="space-y-10">
       <PageHeader eyebrow="The rhythm" title="Outfit calendar." text="Decide tomorrow’s outfit tonight. Assign a saved look to any day." />
-      {looks.length === 0 && plan.length === 0 ? (
+      {allLooks.length === 0 && plan.length === 0 ? (
         <EmptyState
           icon={<CalendarDays className="size-7" />}
           title={items.length === 0 ? "No clothes uploaded yet" : "Your calendar is clear."}
           text={
             items.length === 0
               ? "You haven’t uploaded any clothes yet. Upload photos of your wardrobe pieces to begin composing and scheduling your daily outfits."
-              : "Save a look first, then place it on a day that deserves a little more intention."
+              : "Decide or save a look in the Stylist first, then schedule it for any day."
           }
           action={
             items.length === 0 ? (
@@ -66,10 +67,27 @@ export default function Plan() {
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Plan a look</p>
             <div className="mt-6 space-y-5">
               <Field label="Date"><input type="date" className="studio-input" value={date} min={t} onChange={e => setDate(e.target.value)} /></Field>
-              <Field label="Saved look">
+              <Field label="Outfit to wear">
                 <select className="studio-input" value={lookId} onChange={e => setLookId(e.target.value)}>
-                  <option value="">Choose a look…</option>
-                  {looks.map(l => <option key={l.id} value={l.id}>{l.title} — {l.occasion}</option>)}
+                  <option value="">Choose an outfit…</option>
+                  {savedLooks.length > 0 && (
+                    <optgroup label="Saved Outfits">
+                      {savedLooks.map(l => (
+                        <option key={l.id} value={l.id}>
+                          {l.title} — {l.occasion}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {recentLooks.length > 0 && (
+                    <optgroup label="Recent Stylist & Roulette Looks">
+                      {recentLooks.map(l => (
+                        <option key={l.id} value={l.id}>
+                          {l.title} — {l.occasion}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </Field>
               <Button className="w-full" disabled={!lookId || !date} onClick={add}><Plus className="size-4" /> Add to calendar</Button>

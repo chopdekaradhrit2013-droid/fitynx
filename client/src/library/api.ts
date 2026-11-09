@@ -22,6 +22,22 @@ export function setAuthToken(token: string | null): void {
   }
 }
 
+export interface ExtractedGarment {
+  role: "top" | "bottom" | "outerwear" | "dress" | "shoes";
+  type: string;
+  name: string;
+  colorName: string;
+  colorHex: string;
+  fabric?: string;
+  box2d: [number, number, number, number];
+  searchQuery?: string;
+}
+
+export interface ExtractedOutfitResult {
+  hasPerson: boolean;
+  garments: ExtractedGarment[];
+}
+
 export interface WeatherData {
   location: string;
   coordinates: { lat: number; lon: number };
@@ -234,6 +250,13 @@ export const api = {
       return request("/api/ai/style", {
         method: "POST",
         body: JSON.stringify({ brief, items, apiKey }),
+      });
+    },
+
+    async extractOutfit(image: string, apiKey?: string): Promise<ExtractedOutfitResult> {
+      return request("/api/ai/extract-outfit", {
+        method: "POST",
+        body: JSON.stringify({ image, apiKey }),
       });
     },
   },
