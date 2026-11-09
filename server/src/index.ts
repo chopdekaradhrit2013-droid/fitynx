@@ -5,6 +5,8 @@ import authRoutes from "./routes/auth.js";
 import wardrobeRoutes from "./routes/wardrobe.js";
 import looksRoutes from "./routes/looks.js";
 import plansRoutes from "./routes/plans.js";
+import lensRoutes from "./routes/lens.js";
+import aiRoutes from "./routes/ai.js";
 
 dotenv.config();
 
@@ -28,6 +30,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/wardrobe", wardrobeRoutes);
 app.use("/api/looks", looksRoutes);
 app.use("/api/plans", plansRoutes);
+app.use("/api/lens", lensRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

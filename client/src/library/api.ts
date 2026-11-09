@@ -175,5 +175,61 @@ export const api = {
       });
     },
   },
+
+  lens: {
+    async search(query: string): Promise<{ query: string; results: Array<{ title: string; thumbnail: string; image: string; source: string }> }> {
+      return request<{ query: string; results: Array<{ title: string; thumbnail: string; image: string; source: string }> }>(
+        `/api/lens/search?q=${encodeURIComponent(query)}`
+      );
+    },
+
+    async proxy(url: string): Promise<{ dataUrl: string; contentType: string }> {
+      return request<{ dataUrl: string; contentType: string }>(
+        `/api/lens/proxy?url=${encodeURIComponent(url)}`
+      );
+    },
+  },
+
+  ai: {
+    async status(): Promise<{ active: boolean; model: string; message: string }> {
+      return request<{ active: boolean; model: string; message: string }>("/api/ai/status");
+    },
+
+    async analyze(image: string, apiKey?: string): Promise<{
+      analysis: {
+        name: string;
+        garmentType: string;
+        colorName: string;
+        colorHex: string;
+        fabric?: string;
+        styleVibe?: string;
+        searchQuery?: string;
+        stylingTip?: string;
+      };
+    }> {
+      return request("/api/ai/analyze", {
+        method: "POST",
+        body: JSON.stringify({ image, apiKey }),
+      });
+    },
+
+    async style(brief: any, items: WardrobeItem[], apiKey?: string): Promise<{ look: any }> {
+      return request("/api/ai/style", {
+        method: "POST",
+        body: JSON.stringify({ brief, items, apiKey }),
+      });
+    },
+  },
 };
+
+const GEMINI_KEY_STORAGE = "fitynx_gemini_api_key";
+export function getSavedGeminiKey(): string | null {
+  try { return localStorage.getItem(GEMINI_KEY_STORAGE); } catch { return null; }
+}
+export function saveGeminiKey(key: string | null): void {
+  try {
+    if (!key) localStorage.removeItem(GEMINI_KEY_STORAGE);
+    else localStorage.setItem(GEMINI_KEY_STORAGE, key.trim());
+  } catch { /* ignore */ }
+}
 

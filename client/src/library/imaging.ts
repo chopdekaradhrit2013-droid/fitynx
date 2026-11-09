@@ -39,6 +39,24 @@ function draw(img: HTMLImageElement, max: number) {
   return { canvas, ctx, w, h };
 }
 
+export async function generateAiCutout(imageSource: string | Blob | File): Promise<string | undefined> {
+  try {
+    const { removeBackground: aiRemoveBackground } = await import("@imgly/background-removal");
+    const blob = await aiRemoveBackground(imageSource, {
+      publicPath: "https://staticimgly.com/@imgly/background-removal-data/1.7.0/dist/",
+    });
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result));
+      reader.onerror = () => resolve(URL.createObjectURL(blob));
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn("AI cutout via @imgly/background-removal failed or skipped, trying local canvas:", err);
+    return undefined;
+  }
+}
+
 /** Flood-fill from the image border to remove a plain background. Returns null if the result looks unreliable. */
 function removeBackground(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, w: number, h: number): string | null {
   const data = ctx.getImageData(0, 0, w, h);
@@ -49,19 +67,13 @@ function removeBackground(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext
   for (let x = 0; x < w; x += 3) { sample(x, 0); sample(x, h - 1); }
   for (let y = 0; y < h; y += 3) { sample(0, y); sample(w - 1, y); }
   br /= n; bg /= n; bb /= n;
-  // If the border itself is inconsistent the background is busy: bail out.
-  let variance = 0;
-  const check = (x: number, y: number) => { const i = (y * w + x) * 4; variance += Math.abs(px[i] - br) + Math.abs(px[i + 1] - bg) + Math.abs(px[i + 2] - bb); };
-  for (let x = 0; x < w; x += 3) { check(x, 0); check(x, h - 1); }
-  for (let y = 0; y < h; y += 3) { check(0, y); check(w - 1, y); }
-  if (variance / n > 60) return null;
 
-  const tol = 52;
+  const tol = 64;
   const visited = new Uint8Array(w * h);
   const stack: number[] = [];
   const near = (p: number) => {
     const i = p * 4;
-    return Math.abs(px[i] - br) + Math.abs(px[i + 1] - bg) + Math.abs(px[i + 2] - bb) < tol * 1.6;
+    return Math.abs(px[i] - br) + Math.abs(px[i + 1] - bg) + Math.abs(px[i + 2] - bb) < tol * 1.8;
   };
   const push = (x: number, y: number) => { const p = y * w + x; if (!visited[p] && near(p)) { visited[p] = 1; stack.push(p); } };
   for (let x = 0; x < w; x++) { push(x, 0); push(x, h - 1); }
@@ -77,7 +89,7 @@ function removeBackground(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext
   let removed = 0;
   for (let p = 0; p < w * h; p++) if (visited[p]) removed++;
   const ratio = removed / (w * h);
-  if (ratio < 0.12 || ratio > 0.88) return null;
+  if (ratio < 0.08 || ratio > 0.94) return null;
 
   // Soften the edge by one pixel: pixels touching removed area get half alpha.
   for (let y = 1; y < h - 1; y++) {
@@ -138,11 +150,22 @@ export async function analyzeFile(file: File): Promise<Analysis> {
   const image = main.canvas.toDataURL("image/jpeg", 0.86);
 
   let cutout: string | undefined;
+
+  // 1. Try AI neural-network background removal
   try {
-    const small = draw(img, 640);
-    const result = removeBackground(small.canvas, small.ctx, small.w, small.h);
-    if (result) cutout = result;
-  } catch { /* cut-out is optional */ }
+    cutout = await generateAiCutout(file);
+  } catch {
+    // continue to fallback
+  }
+
+  // 2. Fallback to smart canvas background removal
+  if (!cutout) {
+    try {
+      const small = draw(img, 640);
+      const result = removeBackground(small.canvas, small.ctx, small.w, small.h);
+      if (result) cutout = result;
+    } catch { /* cut-out is optional */ }
+  }
 
   let colorHex: string;
   if (cutout) {

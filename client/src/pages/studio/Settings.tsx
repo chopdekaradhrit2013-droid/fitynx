@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { actions, useStore } from "@/lib/store";
-import { Download, LogOut, Moon, ShieldCheck, Sun, Trash2 } from "lucide-react";
-import React from "react";
+import { api, getSavedGeminiKey, saveGeminiKey } from "@/lib/api";
+import { Check, Download, Eye, EyeOff, Key, LogOut, Moon, ShieldCheck, Sparkles, Sun, Trash2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -22,6 +23,22 @@ export default function Settings() {
   const { theme, toggleTheme } = useTheme();
   const { user, signOut } = useAuth();
   const [, setLocation] = useLocation();
+
+  const [geminiKey, setGeminiKey] = useState(getSavedGeminiKey() || "");
+  const [showKey, setShowKey] = useState(false);
+  const [serverAiStatus, setServerAiStatus] = useState<string>("Checking...");
+  const [serverActive, setServerActive] = useState(false);
+
+  useEffect(() => {
+    api.ai.status()
+      .then(res => {
+        setServerActive(res.active);
+        setServerAiStatus(res.active ? "Gemini 2.0 Flash Connected (Server)" : "No server key detected");
+      })
+      .catch(() => {
+        setServerAiStatus("Offline / Local mode active");
+      });
+  }, []);
 
   const items = useStore(s => s.items);
   const looks = useStore(s => s.looks);
@@ -84,6 +101,62 @@ export default function Settings() {
           ) : (
             <p>Not signed in.</p>
           )}
+        </Card>
+
+        {/* Google Gemini AI */}
+        <Card label="Intelligence" title="Google Gemini AI">
+          <div className="space-y-3">
+            <p className="flex items-center gap-1.5 text-xs text-foreground font-medium">
+              <Sparkles className="size-4 text-[#F26A4B]" />
+              {serverActive || geminiKey ? "Gemini 2.0 Flash Active" : "Local Rules-Based AI Active"}
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Connect your Gemini API key to enable visual garment fabric detection, automated styling descriptions, and Google Lens queries.
+            </p>
+            <div className="relative mt-2">
+              <Key className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+              <input
+                type={showKey ? "text" : "password"}
+                placeholder="AIzaSy... (Gemini API Key)"
+                value={geminiKey}
+                onChange={e => setGeminiKey(e.target.value)}
+                className="w-full rounded-xl border border-border bg-background pl-9 pr-20 py-2 text-xs text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setShowKey(!showKey)}
+                className="absolute right-2.5 top-2 text-muted-foreground hover:text-foreground text-[11px]"
+              >
+                {showKey ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+              </button>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  saveGeminiKey(geminiKey);
+                  toast.success(geminiKey ? "Saved Gemini API key!" : "Cleared Gemini API key");
+                }}
+              >
+                Save key
+              </Button>
+              {geminiKey && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setGeminiKey("");
+                    saveGeminiKey(null);
+                    toast("Cleared key");
+                  }}
+                  className="text-xs text-muted-foreground hover:text-destructive"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+          </div>
         </Card>
 
         {/* Privacy */}

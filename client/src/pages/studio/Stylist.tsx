@@ -1,12 +1,14 @@
 import { LookCard } from "@/components/site/LookCard";
 import { EmptyState, Field, LinkButton, PageHeader } from "@/components/site/studio-ui";
 import { Button } from "@/components/ui/button";
-import { actions, useStore } from "@/lib/store";
+import { actions, uid, useStore } from "@/lib/store";
 import { composeLooks, OCCASIONS, VIBES, WEATHER, type Brief } from "@/lib/stylist";
+import { api, getSavedGeminiKey } from "@/lib/api";
 import type { Look } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Loader2, Shirt, Sparkles, Upload, WandSparkles } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 
 export default function StylistPage() {
   const items = useStore(s => s.items);
@@ -29,6 +31,41 @@ export default function StylistPage() {
       if (looks.length) { actions.setLooks(looks); setCurrentIds(looks.map(l => l.id)); } else setCurrentIds([]);
       setBusy(false);
     }, 450);
+  };
+
+  const runGemini = async () => {
+    setBusy(true);
+    try {
+      const apiKey = getSavedGeminiKey() || undefined;
+      const res = await api.ai.style(brief, items, apiKey);
+      if (res?.look) {
+        const gl = res.look;
+        const validItemIds = (gl.itemIds || []).filter((id: string) => items.some(i => i.id === id));
+        const newLook: Look = {
+          id: uid(),
+          title: gl.title || `${brief.vibe} ${brief.occasion}`,
+          occasion: brief.occasion,
+          rationale: gl.rationale || "Balanced proportion and tone.",
+          coordination: gl.coordination || "Tonal and complementary balance.",
+          finishing: gl.finishing || "",
+          tip: gl.tip || "",
+          score: typeof gl.score === "number" ? gl.score : 96,
+          scoreNote: gl.scoreNote || "Gemini AI recommended",
+          items: validItemIds.map((id: string) => ({ itemId: id, role: "piece" })),
+          saved: false,
+          createdAt: Date.now(),
+        };
+        actions.setLooks([newLook, ...storedLooks]);
+        setCurrentIds([newLook.id]);
+        setMessage(`Gemini curated: "${newLook.title}"`);
+        toast.success("Gemini composed your look!");
+      }
+    } catch (err) {
+      toast.info(err instanceof Error ? err.message : "Falling back to instant local styling.");
+      run();
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (items.length === 0) {
@@ -63,7 +100,14 @@ export default function StylistPage() {
             </Field>
             <Field label="Colours you’d like to wear" hint="Optional — e.g. “navy, olive”"><input className="studio-input" value={brief.colors} onChange={e => set("colors", e.target.value)} maxLength={80} /></Field>
           </div>
-          <Button type="submit" className="mt-7 w-full" disabled={busy}>{busy ? <><Loader2 className="size-4 animate-spin" /> Composing…</> : <><WandSparkles className="size-4" /> Compose looks</>}</Button>
+          <div className="mt-7 flex flex-col gap-2.5">
+            <Button type="submit" className="w-full" disabled={busy}>
+              {busy ? <><Loader2 className="size-4 animate-spin" /> Composing…</> : <><WandSparkles className="size-4" /> Instant Compose</>}
+            </Button>
+            <Button type="button" variant="outline" onClick={runGemini} disabled={busy} className="w-full text-xs">
+              <Sparkles className="size-3.5 text-[#F26A4B]" /> Consult Gemini AI Stylist
+            </Button>
+          </div>
         </form>
 
         <div className="min-h-[420px]">
