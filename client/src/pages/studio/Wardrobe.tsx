@@ -9,7 +9,7 @@ import { analyzeFile, defaultName, generateAiCutout, type Analysis } from "@/lib
 import { api, getSavedGeminiKey } from "@/lib/api";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group, type WardrobeItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check, Globe, Loader2, Plus, Scissors, Search, Shirt, Sparkles, Trash2, Upload, WandSparkles } from "lucide-react";
+import { Check, GalleryHorizontal, Globe, LayoutGrid, Loader2, Plus, Scissors, Search, Shirt, Sparkles, Trash2, Upload, WandSparkles } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -22,6 +22,7 @@ export default function Wardrobe() {
   const items = useStore(s => s.items);
   const [query, setQuery] = React.useState("");
   const [group, setGroup] = React.useState<Group | "all">("all");
+  const [topView, setTopView] = React.useState<"rail" | "grid">("rail");
   const [addOpen, setAddOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<WardrobeItem | null>(null);
 
@@ -31,11 +32,27 @@ export default function Wardrobe() {
     return `${i.name} ${i.colorName} ${GARMENT_TYPES[i.type].label}`.toLowerCase().includes(query.trim().toLowerCase());
   });
 
-  const rail: RailGarment[] = items.slice(0, 16).map(i => ({
-    id: i.id, name: i.name, category: GARMENT_TYPES[i.type].label, kind: RAIL_KIND[i.type] ?? "tee", color: i.colorHex,
-    image: itemImage(i), tag: i.colorName, description: i.notes || `${i.colorName} ${GARMENT_TYPES[i.type].label.toLowerCase()} from your wardrobe.`,
-    details: [GARMENT_TYPES[i.type].label, i.colorName, GROUP_LABELS[GARMENT_TYPES[i.type].group]],
-  }));
+  const tops = items.filter(i => GARMENT_TYPES[i.type].group === "top");
+  const filteredTops = filtered.filter(i => GARMENT_TYPES[i.type].group === "top");
+
+  const topsRail: RailGarment[] = React.useMemo(() => {
+    const list = query.trim() ? filteredTops : tops;
+    return list.map(i => ({
+      id: i.id,
+      name: i.name,
+      category: GARMENT_TYPES[i.type].label,
+      kind: (RAIL_KIND[i.type] ?? "tee") as GarmentKind,
+      color: i.colorHex,
+      image: itemImage(i) || undefined,
+      tag: i.colorName,
+      description: i.notes || `${i.colorName} ${GARMENT_TYPES[i.type].label.toLowerCase()} from your wardrobe.`,
+      details: [
+        GARMENT_TYPES[i.type].label,
+        i.colorName,
+        i.cutout ? "AI Cutout Applied" : "Studio Photo",
+      ],
+    }));
+  }, [tops, filteredTops, query]);
 
   return (
     <div className="space-y-14">
@@ -64,42 +81,171 @@ export default function Wardrobe() {
               {(["all", ...GROUPS] as const).map(g => {
                 const n = g === "all" ? items.length : items.filter(i => GARMENT_TYPES[i.type].group === g).length;
                 if (g !== "all" && n === 0) return null;
-                return <button key={g} onClick={() => setGroup(g)} aria-pressed={group === g} className={cn("whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors", group === g ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:bg-accent hover:text-foreground")}>{g === "all" ? "All pieces" : GROUP_LABELS[g]} <span className="opacity-60">{n}</span></button>;
+                return (
+                  <button
+                    key={g}
+                    onClick={() => setGroup(g)}
+                    aria-pressed={group === g}
+                    className={cn(
+                      "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors",
+                      group === g
+                        ? "border-primary bg-primary text-primary-foreground font-medium"
+                        : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
+                    )}
+                  >
+                    {g === "all" ? "All pieces" : GROUP_LABELS[g]} <span className="opacity-60">{n}</span>
+                  </button>
+                );
               })}
             </div>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by name or colour" aria-label="Search wardrobe" className="studio-input pl-9 md:w-64" />
+
+            <div className="flex items-center gap-3">
+              {group === "top" && (
+                <div className="flex items-center rounded-lg border border-border p-0.5 bg-card shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setTopView("rail")}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                      topView === "rail"
+                        ? "bg-primary text-primary-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    aria-label="Rail view"
+                  >
+                    <GalleryHorizontal className="size-3.5" />
+                    <span>Rail View</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTopView("grid")}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                      topView === "grid"
+                        ? "bg-primary text-primary-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    aria-label="Grid view"
+                  >
+                    <LayoutGrid className="size-3.5" />
+                    <span>Grid View</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="Search by name or colour"
+                  aria-label="Search wardrobe"
+                  className="studio-input pl-9 md:w-64"
+                />
+              </div>
             </div>
           </div>
 
-          {filtered.length === 0 ? <p className="mt-10 text-center text-sm text-muted-foreground">No pieces match that search.</p> : (
-            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-              {filtered.map(item => (
-                <button key={item.id} onClick={() => setEditing(item)} className="group overflow-hidden rounded-xl border border-border bg-card text-left transition-shadow hover:shadow-[0_12px_32px_rgba(30,30,30,0.1)]">
-                  <div className="relative aspect-[4/5] bg-background p-4 flex items-center justify-center">
-                    {itemImage(item) ? (
-                      <img src={itemImage(item)} alt={item.name} loading="lazy" className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]" />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-3">
-                        <Shirt className="size-8 opacity-40" />
-                        <span className="mt-2 text-[11px]">No photo uploaded</span>
+          {/* Special dedicated Tops Rail View when Tops filter is selected */}
+          {group === "top" && topView === "rail" ? (
+            topsRail.length === 0 ? (
+              <p className="mt-10 text-center text-sm text-muted-foreground">No tops match that search.</p>
+            ) : (
+              <div className="mt-7 overflow-hidden rounded-2xl border border-border bg-card/40 p-4 md:p-6 shadow-xs">
+                <ClothingRailHero
+                  items={topsRail}
+                  hanger="wood"
+                  eyebrow="Tops on the Rail"
+                  heading="Your tops on the rail."
+                  caption="Slide across the rail, rotate hangers, and inspect the front and back."
+                  action={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setAddOpen(true)}
+                      className="gap-1.5"
+                    >
+                      <Plus className="size-3.5" /> Add new top
+                    </Button>
+                  }
+                />
+              </div>
+            )
+          ) : (
+            <>
+              {/* If viewing All pieces, showcase the Tops Rail at the top */}
+              {group === "all" && topsRail.length > 0 && !query.trim() && (
+                <div className="mt-7 mb-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card/80 to-card/20 p-4 md:p-6 shadow-xs">
+                  <div className="flex items-center justify-between mb-2 px-1">
+                    <div>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#F26A4B]">Tops on the Rail</p>
+                      <h3 className="font-serif text-2xl font-normal">Your tops on the rail</h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGroup("top");
+                        setTopView("rail");
+                      }}
+                      className="text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Focus tops ({tops.length}) →
+                    </button>
+                  </div>
+                  <ClothingRailHero
+                    items={topsRail}
+                    hanger="wood"
+                    caption="Slide across the rail, rotate hangers, and inspect the front and back."
+                  />
+                </div>
+              )}
+
+              {/* Grid of pieces */}
+              {filtered.length === 0 ? (
+                <p className="mt-10 text-center text-sm text-muted-foreground">No pieces match that search.</p>
+              ) : (
+                <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                  {filtered.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => setEditing(item)}
+                      className="group overflow-hidden rounded-xl border border-border bg-card text-left transition-shadow hover:shadow-[0_12px_32px_rgba(30,30,30,0.1)]"
+                    >
+                      <div className="relative aspect-[4/5] bg-background p-4 flex items-center justify-center">
+                        {itemImage(item) ? (
+                          <img
+                            src={itemImage(item)}
+                            alt={item.name}
+                            loading="lazy"
+                            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.04]"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-3">
+                            <Shirt className="size-8 opacity-40" />
+                            <span className="mt-2 text-[11px]">No photo uploaded</span>
+                          </div>
+                        )}
+                        {item.cutout && (
+                          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                            <Scissors className="size-3" /> Cut out
+                          </span>
+                        )}
                       </div>
-                    )}
-                    {item.cutout && <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground"><Scissors className="size-3" /> Cut out</span>}
-                  </div>
-                  <div className="p-3.5">
-                    <h3 className="truncate text-sm font-medium">{item.name}</h3>
-                    <p className="mt-1 flex items-center gap-2 truncate text-xs text-muted-foreground"><i className="size-2.5 rounded-full border border-border" style={{ background: item.colorHex }} />{GARMENT_TYPES[item.type].label} · {item.colorName}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
+                      <div className="p-3.5">
+                        <h3 className="truncate text-sm font-medium">{item.name}</h3>
+                        <p className="mt-1 flex items-center gap-2 truncate text-xs text-muted-foreground">
+                          <i className="size-2.5 rounded-full border border-border" style={{ background: item.colorHex }} />
+                          {GARMENT_TYPES[item.type].label} · {item.colorName}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
-
-      {items.length >= 2 && <ClothingRailHero items={rail} eyebrow="Interactive closet" heading="Handle your wardrobe." caption="Brush along the rail, then open a piece for details." />}
 
       <AddModal open={addOpen} onClose={() => setAddOpen(false)} />
       <EditModal item={editing} onClose={() => setEditing(null)} />
