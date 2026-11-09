@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   CloudSun,
   Dices,
+  Layers,
   Loader2,
   Palette,
   Scale,
@@ -18,14 +19,16 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
+import { OutfitCanvasBuilder } from "@/components/tools/OutfitCanvasBuilder";
 import { WeatherDecider } from "@/components/tools/WeatherDecider";
 import { ColorHarmonyMatcher } from "@/components/tools/ColorHarmonyMatcher";
 import { OutfitRoulette } from "@/components/tools/OutfitRoulette";
 import { OutfitFaceOff } from "@/components/tools/OutfitFaceOff";
 
-type StylistTab = "brief" | "weather" | "harmony" | "roulette" | "faceoff";
+type StylistTab = "canvas" | "brief" | "weather" | "harmony" | "roulette" | "faceoff";
 
 const TOOLS = [
+  { id: "canvas" as StylistTab, label: "Outfit Canvas", icon: Layers, desc: "Visual collage & moodboard" },
   { id: "brief" as StylistTab, label: "Stylist Studio", icon: Sparkles, desc: "Custom brief & Gemini AI" },
   { id: "weather" as StylistTab, label: "Weather Decider", icon: CloudSun, desc: "Live climate & layering" },
   { id: "harmony" as StylistTab, label: "Color Harmony", icon: Palette, desc: "Anchor piece matching" },
@@ -36,7 +39,17 @@ const TOOLS = [
 export default function StylistPage() {
   const items = useStore(s => s.items);
   const storedLooks = useStore(s => s.looks);
-  const [activeTab, setActiveTab] = React.useState<StylistTab>("brief");
+  const [activeTab, setActiveTab] = React.useState<StylistTab>("canvas");
+  const [canvasInitialItemIds, setCanvasInitialItemIds] = React.useState<string[] | undefined>();
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const itemsParam = params.get("items");
+    if (itemsParam) {
+      setCanvasInitialItemIds(itemsParam.split(","));
+      setActiveTab("canvas");
+    }
+  }, []);
   const [brief, setBrief] = React.useState<Brief>({
     occasion: "Everyday",
     vibe: "polished",
@@ -147,6 +160,16 @@ export default function StylistPage() {
           );
         })}
       </div>
+
+      {/* Tab 0: Outfit Canvas Moodboard Builder */}
+      {activeTab === "canvas" && (
+        <OutfitCanvasBuilder
+          initialItemIds={canvasInitialItemIds}
+          onSaved={() => {
+            // Stay on canvas or provide feedback
+          }}
+        />
+      )}
 
       {/* Tab 1: Brief & Gemini Studio */}
       {activeTab === "brief" && (
@@ -282,7 +305,22 @@ export default function StylistPage() {
                   </span>
                 </div>
                 {current.map(l => (
-                  <LookCard key={l.id} look={l} />
+                  <LookCard
+                    key={l.id}
+                    look={l}
+                    footer={
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCanvasInitialItemIds(l.items.map(i => i.itemId));
+                          setActiveTab("canvas");
+                        }}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary hover:underline"
+                      >
+                        <Layers className="size-3" /> Edit on Canvas →
+                      </button>
+                    }
+                  />
                 ))}
                 {message && <p className="text-xs leading-5 text-muted-foreground">{message}</p>}
                 <Button variant="outline" onClick={() => run()} disabled={busy}>

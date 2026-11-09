@@ -1,11 +1,13 @@
 import { LookCard } from "@/components/site/LookCard";
 import { EmptyState, LinkButton, PageHeader } from "@/components/site/studio-ui";
 import { useStore } from "@/lib/store";
-import { Heart } from "lucide-react";
+import { Heart, Layers } from "lucide-react";
+import { useLocation } from "wouter";
 
 export default function Saved() {
   const looks = useStore(s => s.looks).filter(l => l.saved);
   const items = useStore(s => s.items);
+  const [, setLocation] = useLocation();
 
   return (
     <div className="space-y-10">
@@ -28,7 +30,26 @@ export default function Saved() {
           }
         />
       ) : (
-        <div className="grid gap-5 xl:grid-cols-2">{looks.map(l => <LookCard key={l.id} look={l} />)}</div>
+        <div className="grid gap-5 xl:grid-cols-2">
+          {looks.map(l => (
+            <LookCard
+              key={l.id}
+              look={l}
+              footer={
+                <button
+                  type="button"
+                  onClick={() => {
+                    const itemIds = l.items.map(i => i.itemId).join(",");
+                    setLocation(`/app/stylist?items=${encodeURIComponent(itemIds)}`);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-medium text-primary hover:underline"
+                >
+                  <Layers className="size-3" /> Open in Canvas →
+                </button>
+              }
+            />
+          ))}
+        </div>
       )}
     </div>
   );

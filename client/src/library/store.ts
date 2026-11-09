@@ -201,6 +201,21 @@ export const actions = {
     }
   },
 
+  async saveLook(look: Look) {
+    const existing = state.looks.filter(l => l.id !== look.id);
+    const updated = [{ ...look, saved: true }, ...existing].slice(0, 80);
+    set({ looks: updated });
+    persistLocal("looks");
+
+    if (getAuthToken()) {
+      try {
+        await api.looks.save(updated);
+      } catch (err) {
+        console.error("Backend error saving single look:", err);
+      }
+    }
+  },
+
   async toggleSaved(id: string) {
     const updated = state.looks.map(l => (l.id === id ? { ...l, saved: !l.saved } : l));
     set({ looks: updated });
