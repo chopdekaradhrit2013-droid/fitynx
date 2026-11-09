@@ -299,28 +299,10 @@ export async function analyzeFile(file: File): Promise<Analysis> {
   const main = draw(img, 900);
   const image = main.canvas.toDataURL("image/jpeg", 0.86);
 
-  let cutout: string | undefined;
-
-  // 1. Run ultra-fast smart canvas background removal (< 25ms, never blocks the user)
-  try {
-    const small = draw(img, 512);
-    const result = removeBackground(small.canvas, small.ctx, small.w, small.h);
-    if (result) cutout = result;
-  } catch {
-    /* cut-out is optional */
-  }
-
-  let colorHex: string;
-  if (cutout) {
-    const cImg = await loadImage(cutout);
-    const c = draw(cImg, 240);
-    colorHex = dominantColor(c.ctx, c.w, c.h);
-  } else {
-    const c = draw(img, 240);
-    colorHex = dominantColor(c.ctx, c.w, c.h);
-  }
+  const c = draw(img, 240);
+  const colorHex = dominantColor(c.ctx, c.w, c.h);
   const guess = guessType(file.name);
-  return { image, cutout, colorHex, colorName: nameColor(colorHex), type: guess ?? "tee", typeGuessed: !!guess };
+  return { image, colorHex, colorName: nameColor(colorHex), type: guess ?? "tee", typeGuessed: !!guess };
 }
 
 export function defaultName(colorName: string, type: GarmentType) {
