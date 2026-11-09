@@ -3,10 +3,10 @@ import { Modal } from "./Modal";
 import { Button } from "@/components/ui/button";
 import { LensMatchModal } from "./LensMatchModal";
 import { api, getSavedGeminiKey, type ExtractedGarment } from "@/lib/api";
-import { cropImageRegion, generateAiCutout, analyzeFile, createFastThumbnail } from "@/lib/imaging";
+import { cropImageRegion, analyzeFile, createFastThumbnail } from "@/lib/imaging";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check, Globe, Layers, Loader2, RefreshCw, Scissors, Sparkles, User, Wand2 } from "lucide-react";
+import { Check, Globe, Layers, Loader2, RefreshCw, Sparkles, User, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
 export interface ExtractedPieceDraft {
@@ -18,8 +18,6 @@ export interface ExtractedPieceDraft {
   colorHex: string;
   fabric?: string;
   image: string;
-  cutout?: string;
-  cutoutBusy?: boolean;
   notes: string;
   searchQuery?: string;
 }
@@ -145,29 +143,8 @@ export function OutfitExtractorModal({
     };
   }, [open, originalImage]);
 
-  const handleCutout = async (index: number) => {
-    const target = pieces[index];
-    if (!target) return;
-
-    setPieces(p => p.map((item, i) => (i === index ? { ...item, cutoutBusy: true } : item)));
-
-    try {
-      const cutout = await generateAiCutout(target.image);
-      if (cutout) {
-        setPieces(p => p.map((item, i) => (i === index ? { ...item, cutout, cutoutBusy: false } : item)));
-        toast.success(`Removed background from ${target.name}`);
-      } else {
-        toast.info("Could not extract transparent cutout for this piece.");
-        setPieces(p => p.map((item, i) => (i === index ? { ...item, cutoutBusy: false } : item)));
-      }
-    } catch {
-      toast.error("Background cutout failed.");
-      setPieces(p => p.map((item, i) => (i === index ? { ...item, cutoutBusy: false } : item)));
-    }
-  };
-
   const handleLensReplace = (index: number, newImage: string) => {
-    setPieces(p => p.map((item, i) => (i === index ? { ...item, image: newImage, cutout: newImage } : item)));
+    setPieces(p => p.map((item, i) => (i === index ? { ...item, image: newImage } : item)));
     setLensIndex(null);
     toast.success("Replaced with studio product photo!");
   };
@@ -228,51 +205,25 @@ export function OutfitExtractorModal({
             {/* Active Piece Card */}
             {currentPiece && (
               <div className="grid gap-6 sm:grid-cols-[180px_1fr]">
-                {/* Image & Cutout Preview */}
+                {/* Image Preview */}
                 <div className="space-y-3">
                   <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-border bg-background p-2 flex items-center justify-center">
                     <img
-                      src={currentPiece.cutout || currentPiece.image}
+                      src={currentPiece.image}
                       alt={currentPiece.name}
                       className="size-full object-contain"
                     />
-                    {currentPiece.cutout && (
-                      <span className="absolute left-2 top-2 rounded-full bg-card/90 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-                        Cutout
-                      </span>
-                    )}
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCutout(activeTab)}
-                      disabled={currentPiece.cutoutBusy}
-                      className="w-full text-xs gap-1.5"
-                    >
-                      {currentPiece.cutoutBusy ? (
-                        <>
-                          <Loader2 className="size-3 animate-spin" /> Cutting...
-                        </>
-                      ) : (
-                        <>
-                          <Scissors className="size-3 text-[#F26A4B]" /> AI Cutout
-                        </>
-                      )}
-                    </Button>
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setLensIndex(activeTab)}
-                      className="w-full text-xs gap-1.5"
-                    >
-                      <Globe className="size-3 text-sky-400" /> Lens Studio Shot
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLensIndex(activeTab)}
+                    className="w-full text-xs gap-1.5 border-primary/20 hover:border-primary"
+                  >
+                    <Globe className="size-3 text-[#F26A4B]" /> Match with Google Lens
+                  </Button>
                 </div>
 
                 {/* Metadata Fields */}
@@ -359,7 +310,7 @@ export function OutfitExtractorModal({
             pieces[lensIndex].searchQuery ||
             `${pieces[lensIndex].name} ${pieces[lensIndex].colorName} ${GARMENT_TYPES[pieces[lensIndex].type].label} flat lay`
           }
-          currentImage={pieces[lensIndex].cutout || pieces[lensIndex].image}
+          currentImage={pieces[lensIndex].image}
           onSelectImage={(dataUrl: string) => handleLensReplace(lensIndex, dataUrl)}
         />
       )}

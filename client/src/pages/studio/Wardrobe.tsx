@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import ClothingRailHero, { type GarmentKind, type RailGarment } from "@/components/ui/product-rail-gallery";
 import { nameColor } from "@/lib/color";
 import { actions, uid, useStore } from "@/lib/store";
-import { analyzeFile, createFastThumbnail, defaultName, generateAiCutout, readFile, type Analysis } from "@/lib/imaging";
+import { analyzeFile, createFastThumbnail, defaultName, readFile, type Analysis } from "@/lib/imaging";
 import { api, getSavedGeminiKey } from "@/lib/api";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group, type WardrobeItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check, GalleryHorizontal, Globe, LayoutGrid, Loader2, Plus, Scissors, Search, Shirt, Sparkles, Trash2, Upload, User, WandSparkles } from "lucide-react";
+import { Check, GalleryHorizontal, Globe, Layers, LayoutGrid, Loader2, Plus, Search, Shirt, Sparkles, Trash2, Upload, User, WandSparkles } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -50,7 +50,7 @@ export default function Wardrobe() {
       details: [
         GARMENT_TYPES[i.type].label,
         i.colorName,
-        i.cutout ? "AI Cutout Applied" : "Studio Photo",
+        "Wardrobe Piece",
       ],
     }));
   }, [tops, filteredTops, query]);
@@ -60,7 +60,7 @@ export default function Wardrobe() {
       <PageHeader
         eyebrow="Your collection"
         title="Wardrobe."
-        text="Everything you own, catalogued on this device. Add photos and FITYNX reads the colour, lifts the garment off its background, and gets it ready to style."
+        text="Everything you own, catalogued on this device. Add photos and FITYNX reads the colour, identifies the piece, and gets it ready to style."
         action={<Button onClick={() => setAddOpen(true)}><Plus className="size-4" /> Add pieces</Button>}
       />
 
@@ -68,7 +68,7 @@ export default function Wardrobe() {
         <EmptyState
           icon={<Shirt className="size-7" />}
           title="No clothes uploaded yet"
-          text="Your digital wardrobe is empty. Upload clear photos of your clothing pieces (laid flat or hung against a plain backdrop) to get started with automatic background removal and styling."
+          text="Your digital wardrobe is empty. Upload clear photos of your clothing pieces to get started with styling and outfit curation."
           action={
             <Button onClick={() => setAddOpen(true)}>
               <Upload className="size-4" /> Upload your clothes
@@ -226,11 +226,6 @@ export default function Wardrobe() {
                             <span className="mt-2 text-[11px]">No photo uploaded</span>
                           </div>
                         )}
-                        {item.cutout && (
-                          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
-                            <Scissors className="size-3" /> Cut out
-                          </span>
-                        )}
                       </div>
                       <div className="p-3.5">
                         <h3 className="truncate text-sm font-medium">{item.name}</h3>
@@ -267,7 +262,6 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [drafts, setDrafts] = React.useState<Draft[]>([]);
   const [drag, setDrag] = React.useState(false);
   const [lensDraft, setLensDraft] = React.useState<Draft | null>(null);
-  const [cuttingKey, setCuttingKey] = React.useState<string | null>(null);
   const [analyzingKey, setAnalyzingKey] = React.useState<string | null>(null);
   const [extractorImage, setExtractorImage] = React.useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -300,7 +294,6 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
       colorName: p.colorName,
       colorHex: p.colorHex,
       image: p.image,
-      cutout: p.cutout,
       typeGuessed: false,
     }));
     setDrafts(prev => [...prev, ...newDrafts]);
@@ -310,28 +303,11 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   const patch = (key: string, p: Partial<Draft>) => setDrafts(d => d.map(x => (x.key === key ? { ...x, ...p } : x)));
 
-  const handleCutout = async (d: Draft) => {
-    setCuttingKey(d.key);
-    try {
-      const cutout = await generateAiCutout(d.image);
-      if (cutout) {
-        patch(d.key, { cutout });
-        toast.success("Background cleanly removed!");
-      } else {
-        toast.info("Could not isolate garment background on this image.");
-      }
-    } catch {
-      toast.error("Background cutout failed");
-    } finally {
-      setCuttingKey(null);
-    }
-  };
-
   const handleGeminiAnalyze = async (d: Draft) => {
     setAnalyzingKey(d.key);
     try {
       const apiKey = getSavedGeminiKey() || undefined;
-      const fastThumb = await createFastThumbnail(d.cutout || d.image, 640);
+      const fastThumb = await createFastThumbnail(d.image, 640);
       const res = await api.ai.analyze(fastThumb, apiKey);
       if (res?.analysis) {
         const a = res.analysis;
@@ -352,7 +328,7 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   const save = () => {
     const now = Date.now();
-    actions.addItems(drafts.map<WardrobeItem>((d, i) => ({ id: uid(), name: d.name.trim() || defaultName(d.colorName, d.type), type: d.type, colorHex: d.colorHex, colorName: d.colorName, notes: "", image: d.image, cutout: d.cutout, createdAt: now - i })));
+    actions.addItems(drafts.map<WardrobeItem>((d, i) => ({ id: uid(), name: d.name.trim() || defaultName(d.colorName, d.type), type: d.type, colorHex: d.colorHex, colorName: d.colorName, notes: "", image: d.image, createdAt: now - i })));
     toast.success(`${drafts.length} ${drafts.length === 1 ? "piece" : "pieces"} added to your wardrobe`);
     onClose();
   };
@@ -365,7 +341,7 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={e => { e.preventDefault(); setDrag(false); void handle(e.dataTransfer.files); }}
           className={cn("flex w-full flex-col items-center justify-center rounded-xl border border-dashed px-6 py-10 text-center transition-colors disabled:cursor-wait", drag ? "border-primary bg-accent" : "border-primary/35 bg-background/60 hover:bg-accent")}>
           <span className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground">{busy ? <Loader2 className="size-5 animate-spin" /> : <Upload className="size-5" />}</span>
-          <span className="mt-4 text-sm font-medium">{busy ? "Analysing & removing background…" : "Choose or drop clothing photos"}</span>
+          <span className="mt-4 text-sm font-medium">{busy ? "Importing photos…" : "Choose or drop clothing photos"}</span>
           <span className="mt-1 text-xs text-muted-foreground">JPG, PNG or WEBP · up to 15 MB each · photos stay on this device</span>
         </button>
 
@@ -398,32 +374,23 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         {drafts.length > 0 && (
           <>
             <p className="mt-6 text-xs leading-5 text-muted-foreground">
-              Review your pieces. Use <strong>AI Cutout</strong> to remove backdrops, <strong>Extract Top & Bottom</strong> to split worn clothes, or <strong>Lens Match</strong> for studio flat-lays.
+              Review your pieces. Use <strong>Extract Top & Bottom</strong> to split worn clothes, or <strong>Google Lens</strong> to reverse search clean studio catalog photos.
             </p>
             <ul className="mt-4 space-y-3">
               {drafts.map(d => (
                 <li key={d.key} className="grid grid-cols-[96px_1fr] gap-4 rounded-xl border border-border bg-background/60 p-3 sm:grid-cols-[108px_1fr_auto]">
                   <div className="flex flex-col items-center gap-1.5">
                     <div className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden rounded-lg bg-card">
-                      <img src={d.cutout || d.image} alt="" className="h-full w-full object-contain p-1" />
+                      <img src={d.image} alt="" className="h-full w-full object-contain p-1" />
                     </div>
                     {/* Action buttons under thumbnail */}
                     <div className="flex w-full flex-col gap-1">
                       <button
                         type="button"
-                        onClick={() => handleCutout(d)}
-                        disabled={cuttingKey === d.key}
-                        className="flex w-full items-center justify-center gap-1 rounded border border-border bg-card px-1.5 py-1 text-[10px] text-muted-foreground hover:border-primary hover:text-foreground"
-                      >
-                        {cuttingKey === d.key ? <Loader2 className="size-2.5 animate-spin" /> : <Scissors className="size-2.5" />}
-                        {d.cutout ? "Re-cut" : "AI Cutout"}
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => setLensDraft(d)}
                         className="flex w-full items-center justify-center gap-1 rounded border border-border bg-card px-1.5 py-1 text-[10px] text-primary hover:bg-primary/10"
                       >
-                        <Search className="size-2.5" /> Lens Match
+                        <Globe className="size-2.5 text-[#F26A4B]" /> Google Lens
                       </button>
                     </div>
                   </div>
@@ -458,7 +425,7 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                           onClick={() => setExtractorImage(d.image)}
                           className="w-full text-xs h-8 font-normal justify-start gap-1.5"
                         >
-                          <Scissors className="size-3.5 text-[#F26A4B]" />
+                          <Layers className="size-3.5 text-[#F26A4B]" />
                           Extract Top & Bottom
                         </Button>
                       </div>
@@ -468,9 +435,7 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                         Colour <input type="color" value={d.colorHex} onChange={e => { const n = nameColor(e.target.value); patch(d.key, { colorHex: e.target.value, colorName: n, name: d.name === defaultName(d.colorName, d.type) ? defaultName(n, d.type) : d.name }); }} className="size-6 cursor-pointer rounded border border-border bg-transparent p-0" />
                       </label>
                       <span>{d.colorName}</span>
-                      <span className="inline-flex items-center gap-1">
-                        {d.cutout ? <><Check className="size-3 text-primary" /> Cutout active</> : <>Original photo</>}
-                      </span>
+                      <span className="text-muted-foreground">Original photo</span>
                     </div>
                   </div>
                   <button onClick={() => setDrafts(x => x.filter(y => y.key !== d.key))} aria-label="Discard" className="col-span-2 justify-self-end rounded-full p-2 text-muted-foreground hover:text-destructive sm:col-span-1 sm:self-start"><Trash2 className="size-4" /></button>
@@ -498,9 +463,9 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           open={!!lensDraft}
           onClose={() => setLensDraft(null)}
           initialQuery={`${lensDraft.colorName} ${lensDraft.name}`}
-          currentImage={lensDraft.cutout || lensDraft.image}
+          currentImage={lensDraft.image}
           onSelectImage={(newImg) => {
-            patch(lensDraft.key, { image: newImg, cutout: undefined });
+            patch(lensDraft.key, { image: newImg });
           }}
         />
       )}
@@ -514,9 +479,7 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
   const [color, setColor] = React.useState("#000000");
   const [notes, setNotes] = React.useState("");
   const [image, setImage] = React.useState("");
-  const [cutout, setCutout] = React.useState<string | undefined>();
   const [lensOpen, setLensOpen] = React.useState(false);
-  const [cutting, setCutting] = React.useState(false);
   const [analyzing, setAnalyzing] = React.useState(false);
 
   React.useEffect(() => {
@@ -526,35 +489,16 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
       setColor(item.colorHex);
       setNotes(item.notes);
       setImage(item.image);
-      setCutout(item.cutout);
     }
   }, [item]);
 
   if (!item) return null;
 
-  const handleCutout = async () => {
-    setCutting(true);
-    try {
-      const result = await generateAiCutout(cutout || image);
-      if (result) {
-        setCutout(result);
-        actions.updateItem(item.id, { cutout: result });
-        toast.success("Background cutout generated!");
-      } else {
-        toast.info("Could not isolate garment boundary on this photo.");
-      }
-    } catch {
-      toast.error("Cutout process failed");
-    } finally {
-      setCutting(false);
-    }
-  };
-
   const handleGemini = async () => {
     setAnalyzing(true);
     try {
       const apiKey = getSavedGeminiKey() || undefined;
-      const res = await api.ai.analyze(cutout || image, apiKey);
+      const res = await api.ai.analyze(image, apiKey);
       if (res?.analysis) {
         const a = res.analysis;
         setName(a.name || name);
@@ -576,28 +520,17 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
         <div className="grid gap-6 sm:grid-cols-[160px_1fr]">
           <div className="space-y-2">
             <div className="relative aspect-[4/5] overflow-hidden rounded-lg border border-border bg-card">
-              <img src={cutout || image} alt={name} className="h-full w-full object-contain p-2" />
+              <img src={image} alt={name} className="h-full w-full object-contain p-2" />
             </div>
             <div className="flex flex-col gap-1.5">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={cutting}
-                onClick={handleCutout}
-                className="w-full text-xs h-8"
-              >
-                {cutting ? <Loader2 className="size-3 animate-spin" /> : <Scissors className="size-3" />}
-                {cutout ? "Re-cut AI" : "AI Cutout"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
                 onClick={() => setLensOpen(true)}
-                className="w-full text-xs h-8 text-primary hover:bg-primary/10"
+                className="w-full text-xs h-8 text-primary hover:bg-primary/10 gap-1.5"
               >
-                <Search className="size-3" /> Lens Match
+                <Globe className="size-3 text-[#F26A4B]" /> Google Lens
               </Button>
               <Button
                 type="button"
@@ -605,7 +538,7 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
                 size="sm"
                 disabled={analyzing}
                 onClick={handleGemini}
-                className="w-full text-xs h-8"
+                className="w-full text-xs h-8 gap-1.5"
               >
                 {analyzing ? <Loader2 className="size-3 animate-spin" /> : <Sparkles className="size-3 text-[#F26A4B]" />}
                 Gemini Tag
@@ -622,7 +555,7 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
         </div>
         <div className="mt-7 flex items-center justify-between">
           <Button variant="ghost" className="text-destructive hover:text-destructive" onClick={() => { if (window.confirm(`Remove “${item.name}” from your wardrobe?`)) { actions.removeItem(item.id); toast("Piece removed"); onClose(); } }}><Trash2 className="size-4" /> Remove</Button>
-          <div className="flex gap-3"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button onClick={() => { actions.updateItem(item.id, { name: name.trim() || item.name, type, colorHex: color, colorName: nameColor(color), notes, image, cutout }); onClose(); toast.success("Saved"); }}>Save changes</Button></div>
+          <div className="flex gap-3"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button onClick={() => { actions.updateItem(item.id, { name: name.trim() || item.name, type, colorHex: color, colorName: nameColor(color), notes, image }); onClose(); toast.success("Saved"); }}>Save changes</Button></div>
         </div>
       </Modal>
 
@@ -632,11 +565,10 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
           open={lensOpen}
           onClose={() => setLensOpen(false)}
           initialQuery={`${nameColor(color)} ${name}`}
-          currentImage={cutout || image}
+          currentImage={image}
           onSelectImage={(newImg) => {
             setImage(newImg);
-            setCutout(undefined);
-            actions.updateItem(item.id, { image: newImg, cutout: undefined });
+            actions.updateItem(item.id, { image: newImg });
           }}
         />
       )}

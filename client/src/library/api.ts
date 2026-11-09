@@ -216,6 +216,26 @@ export const api = {
       );
     },
 
+    async searchByImage(
+      image: string,
+      apiKey?: string
+    ): Promise<{
+      lensUrl?: string;
+      query: string;
+      visualTitle?: string;
+      results: Array<{ title: string; thumbnail: string; image: string; source: string }>;
+    }> {
+      return request<{
+        lensUrl?: string;
+        query: string;
+        visualTitle?: string;
+        results: Array<{ title: string; thumbnail: string; image: string; source: string }>;
+      }>("/api/lens/search-by-image", {
+        method: "POST",
+        body: JSON.stringify({ image, apiKey }),
+      });
+    },
+
     async proxy(url: string): Promise<{ dataUrl: string; contentType: string }> {
       return request<{ dataUrl: string; contentType: string }>(
         `/api/lens/proxy?url=${encodeURIComponent(url)}`

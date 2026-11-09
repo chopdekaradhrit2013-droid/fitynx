@@ -8,7 +8,7 @@ import { garmentDataUrl } from "@/lib/garments";
 import { buildSampleWardrobe } from "@/lib/sample";
 import type { GarmentType } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, HardDrive, Layers, Menu, Palette, Scissors, ShieldCheck, Shirt, Sparkles, X } from "lucide-react";
+import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, Globe, HardDrive, Layers, Menu, Palette, ShieldCheck, Shirt, Sparkles, X } from "lucide-react";
 import * as React from "react";
 import { Link } from "wouter";
 
@@ -29,7 +29,7 @@ const img = (t: GarmentType, c: string) => garmentDataUrl(t, c);
 
 const FEATURES = [
   { icon: Shirt, title: "A digital wardrobe", text: "Photograph what you own once. Every piece is catalogued by type, colour and name — searchable, filterable and always with you." },
-  { icon: Scissors, title: "AI cut-outs & Lens Match", text: "One-click neural background removal or search the web like Google Lens for crisp e-commerce catalog flat-lays of your clothes." },
+  { icon: Globe, title: "Google Lens reverse search", text: "Reverse search clothes by image directly with Google Lens to find crisp e-commerce catalog flat-lays and matching products." },
   { icon: Palette, title: "Color harmony theory", text: "Interactive color wheel harmonies: complementary contrast, analogous rhythm, monochromatic tone, and neutral grounding." },
   { icon: Sparkles, title: "Gemini AI & smart stylist", text: "Curated looks with editorial reasoning, silhouette balance, and fit tips — powered by multimodal Gemini AI and local algorithms." },
   { icon: CloudSun, title: "Live weather decider", text: "Live meteorological conditions and thermal layering formulas from Open-Meteo automatically compose outfits suited for today's forecast." },
@@ -39,8 +39,8 @@ const FEATURES = [
 const FAQ = [
   { q: "How do sign up and sign in work?", a: "FITYNX supports fast, secure sign-in with your email and password. Your personal account securely keeps your wardrobe, saved outfits, and styling history accessible to you whenever you return." },
   { q: "Where do my photos go?", a: "Your photos and wardrobe details are stored securely for your personal account and processed in your browser. We never share your photos or use them to train public models." },
-  { q: "Is the stylist really “AI”?", a: "FITYNX combines on-device image analysis (colour extraction, background removal) with a transparent styling engine that scores colour harmony, formality and weather suitability. It will only ever recommend pieces you actually own." },
-  { q: "What kind of photos work best?", a: "A single garment laid flat or hung against a plain, evenly lit surface. That gives the cleanest cut-out and the most accurate colour. You can always correct the type and colour before saving." },
+  { q: "Is the stylist really “AI”?", a: "FITYNX combines on-device image analysis (colour extraction, type detection) with a transparent styling engine that scores colour harmony, formality and weather suitability. It will only ever recommend pieces you actually own." },
+  { q: "What kind of photos work best?", a: "A single garment laid flat or hung against a plain, evenly lit surface. That gives the cleanest photo and the most accurate colour. You can always correct the type and colour before saving." },
   { q: "What happens if I switch devices or browsers?", a: "Your wardrobe is stored securely in your account database, so your pieces and outfits are preserved and synchronized whenever you sign in." },
   { q: "Does it cost anything?", a: "FITYNX is free to use." },
 ];
