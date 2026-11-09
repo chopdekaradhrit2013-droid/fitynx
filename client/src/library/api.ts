@@ -32,6 +32,8 @@ export interface ApiUser {
   updatedAt: string;
 }
 
+const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") || "";
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = getAuthToken();
   const headers = new Headers(options.headers || {});
@@ -44,7 +46,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const res = await fetch(endpoint, {
+  const url = `${API_BASE}${endpoint}`;
+  const res = await fetch(url, {
     ...options,
     headers,
   });

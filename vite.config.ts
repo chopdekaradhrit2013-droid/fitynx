@@ -16,5 +16,24 @@ export default defineConfig({
     sourcemap: false,
     chunkSizeWarningLimit: 700,
   },
-  server: { host: true, port: 3000 },
+  server: {
+    host: true,
+    port: 3000,
+    proxy: {
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+    },
+  },
+  preview: {
+    host: true,
+    port: 3000,
+    proxy: {
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+    },
+  },
 });

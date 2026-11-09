@@ -3,6 +3,8 @@ import { api, getAuthToken, setAuthToken } from "@/lib/api";
 import {
   getCurrentSession,
   setCurrentSession,
+  signInUser,
+  signUpUser,
   type SignInData,
   type SignUpData,
   type User,
@@ -86,6 +88,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await initStore(newUser.id);
       return newUser;
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      // Fallback for static hosting (e.g. GitHub Pages returning 405/404) or offline/network errors
+      if (
+        msg.includes("405") ||
+        msg.includes("404") ||
+        msg.includes("Failed to fetch") ||
+        msg.includes("NetworkError") ||
+        msg.includes("Load failed")
+      ) {
+        console.warn("Backend API unavailable or static environment detected (405/404). Falling back to client-side storage.");
+        const localUser = await signUpUser(data);
+        setUser(localUser);
+        await initStore(localUser.id);
+        return localUser;
+      }
       console.error("Sign up error:", err);
       throw err;
     }
@@ -107,6 +124,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await initStore(sessionUser.id);
       return sessionUser;
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (
+        msg.includes("405") ||
+        msg.includes("404") ||
+        msg.includes("Failed to fetch") ||
+        msg.includes("NetworkError") ||
+        msg.includes("Load failed")
+      ) {
+        console.warn("Backend API unavailable or static environment detected (405/404). Falling back to client-side storage.");
+        const localUser = await signInUser(data);
+        setUser(localUser);
+        await initStore(localUser.id);
+        return localUser;
+      }
       console.error("Sign in error:", err);
       throw err;
     }
