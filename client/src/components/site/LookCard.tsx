@@ -9,14 +9,24 @@ export function LookCard({ look, footer }: { look: Look; footer?: React.ReactNod
   const pieces = look.items.map(li => ({ ...li, item: items.find(i => i.id === li.itemId) }));
   const missing = pieces.filter(p => !p.item).length;
   return (
-    <article className="rounded-2xl border border-border bg-card p-5 md:p-6">
+    <article className="rounded-2xl border border-border bg-card p-5 md:p-6 transition-all duration-200 hover:shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="font-serif text-2xl tracking-[-0.03em] md:text-3xl">{look.title}</p>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">{look.rationale}</p>
         </div>
-        <button onClick={() => actions.toggleSaved(look.id)} aria-pressed={look.saved} aria-label={look.saved ? "Remove from saved looks" : "Save look"} className={cn("shrink-0 rounded-full border p-2.5 transition-colors", look.saved ? "border-[#F26A4B] bg-[#F26A4B] text-white" : "border-border text-muted-foreground hover:text-foreground")}>
-          <Heart className={cn("size-4", look.saved && "fill-current")} />
+        <button
+          onClick={() => actions.toggleSaved(look.id)}
+          aria-pressed={look.saved}
+          aria-label={look.saved ? "Remove from saved looks" : "Save look"}
+          className={cn(
+            "shrink-0 rounded-full border p-2.5 transition-all duration-200 active:scale-75 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            look.saved
+              ? "border-[#F26A4B] bg-[#F26A4B] text-white shadow-xs"
+              : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"
+          )}
+        >
+          <Heart className={cn("size-4 transition-transform duration-200", look.saved && "fill-current scale-110")} />
         </button>
       </div>
       <div className="mt-5 grid grid-flow-col auto-cols-[minmax(84px,1fr)] gap-3 overflow-x-auto pb-1">

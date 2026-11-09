@@ -90,7 +90,7 @@ export default function Wardrobe() {
                     className={cn(
                       "whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs transition-all duration-200 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                       group === g
-                        ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
+                        ? "border-primary bg-primary text-primary-foreground font-medium"
                         : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
                     )}
                   >
@@ -109,7 +109,7 @@ export default function Wardrobe() {
                     className={cn(
                       "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-200 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                       topView === "rail"
-                        ? "bg-primary text-primary-foreground shadow-xs"
+                        ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                     aria-label="Rail view"
@@ -123,7 +123,7 @@ export default function Wardrobe() {
                     className={cn(
                       "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-200 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                       topView === "grid"
-                        ? "bg-primary text-primary-foreground shadow-xs"
+                        ? "bg-primary text-primary-foreground"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                     aria-label="Grid view"
@@ -152,7 +152,7 @@ export default function Wardrobe() {
             topsRail.length === 0 ? (
               <p className="mt-10 text-center text-sm text-muted-foreground">No tops match that search.</p>
             ) : (
-              <div className="mt-7 overflow-hidden rounded-2xl border border-border bg-card/40 p-4 md:p-6 shadow-xs">
+              <div className="mt-7 overflow-hidden rounded-2xl border border-border bg-card/40 p-4 md:p-6">
                 <ClothingRailHero
                   items={topsRail}
                   hanger="wood"
@@ -176,7 +176,7 @@ export default function Wardrobe() {
             <>
               {/* If viewing All pieces, showcase the Tops Rail at the top */}
               {group === "all" && topsRail.length > 0 && !query.trim() && (
-                <div className="mt-7 mb-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card/80 to-card/20 p-4 md:p-6 shadow-xs">
+                <div className="mt-7 mb-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-card/80 to-card/20 p-4 md:p-6">
                   <div className="flex items-center justify-between mb-2 px-1">
                     <div>
                       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#F26A4B]">Tops on the Rail</p>
@@ -210,7 +210,7 @@ export default function Wardrobe() {
                     <button
                       key={item.id}
                       onClick={() => setEditing(item)}
-                      className="group overflow-hidden rounded-xl border border-border bg-card text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(30,30,30,0.1)] active:scale-[0.98] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      className="group overflow-hidden rounded-xl border border-border bg-card text-left transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       <div className="relative aspect-[4/5] bg-background p-4 flex items-center justify-center">
                         {itemImage(item) ? (

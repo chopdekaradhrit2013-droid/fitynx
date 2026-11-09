@@ -30,13 +30,19 @@ export default function Plan() {
     const look = allLooks.find(l => l.id === p.lookId);
     const pieces = (look?.items ?? []).map(li => items.find(i => i.id === li.itemId)).filter(Boolean).slice(0, 4);
     return (
-      <li key={p.id} className={`flex items-center gap-4 rounded-xl border border-border bg-card p-4 ${muted ? "opacity-60" : ""}`}>
+      <li key={p.id} className={`flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-all duration-200 hover:shadow-sm ${muted ? "opacity-60" : ""}`}>
         <div className="min-w-0 flex-1">
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{fmt(p.date)}</p>
           <p className="mt-1.5 truncate font-serif text-xl tracking-[-0.02em]">{look?.title ?? "Look no longer available"}</p>
         </div>
         <div className="hidden gap-1.5 sm:flex">{pieces.map(i => i && <Thumb key={i.id} item={i} className="size-12 border border-border" />)}</div>
-        <button onClick={() => actions.removePlan(p.id)} aria-label="Remove from calendar" className="rounded-full p-2 text-muted-foreground hover:text-destructive"><X className="size-4" /></button>
+        <button
+          onClick={() => actions.removePlan(p.id)}
+          aria-label="Remove from calendar"
+          className="rounded-full p-2 text-muted-foreground transition-all duration-150 hover:bg-destructive/10 hover:text-destructive active:scale-90"
+        >
+          <X className="size-4" />
+        </button>
       </li>
     );
   };
