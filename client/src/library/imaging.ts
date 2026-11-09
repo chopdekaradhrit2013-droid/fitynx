@@ -305,6 +305,131 @@ export async function analyzeFile(file: File): Promise<Analysis> {
   return { image, colorHex, colorName: nameColor(colorHex), type: guess ?? "tee", typeGuessed: !!guess };
 }
 
+/**
+ * Accurately extracts dominant garment color from a cropped piece of a worn photograph.
+ * Samples the garment fabric core region while filtering out background wall/skin pixels.
+ */
+export async function extractGarmentDominantColor(
+  imageSource: string,
+  role?: string
+): Promise<{ colorHex: string; colorName: string }> {
+  try {
+    const img = await loadImage(imageSource);
+    const canvas = document.createElement("canvas");
+    const w = 180;
+    const h = 180;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return { colorHex: "#333333", colorName: "Neutral" };
+
+    ctx.drawImage(img, 0, 0, w, h);
+    const imgData = ctx.getImageData(0, 0, w, h);
+    const px = imgData.data;
+
+    // 1. Sample border pixels to detect background color (wall, door, mirror)
+    const borderSamples: Array<[number, number]> = [];
+    for (let x = 0; x < w; x += 12) {
+      borderSamples.push([x, 0], [x, h - 1]);
+    }
+    for (let y = 0; y < h; y += 12) {
+      borderSamples.push([0, y], [w - 1, y]);
+    }
+    let bgR = 0, bgG = 0, bgB = 0, bgCount = 0;
+    for (const [bx, by] of borderSamples) {
+      const idx = (by * w + bx) * 4;
+      if (px[idx + 3] > 180) {
+        bgR += px[idx];
+        bgG += px[idx + 1];
+        bgB += px[idx + 2];
+        bgCount++;
+      }
+    }
+    if (bgCount > 0) {
+      bgR /= bgCount;
+      bgG /= bgCount;
+      bgB /= bgCount;
+    }
+
+    // 2. Focus on central fabric core of the garment
+    const startX = Math.floor(w * 0.22);
+    const endX = Math.floor(w * 0.78);
+    const startY = role === "bottom" ? Math.floor(h * 0.20) : Math.floor(h * 0.26);
+    const endY = role === "bottom" ? Math.floor(h * 0.75) : Math.floor(h * 0.74);
+
+    const buckets = new Map<number, { r: number; g: number; b: number; count: number }>();
+
+    for (let y = startY; y < endY; y += 2) {
+      for (let x = startX; x < endX; x += 2) {
+        const i = (y * w + x) * 4;
+        const a = px[i + 3];
+        if (a < 180) continue;
+
+        const r = px[i];
+        const g = px[i + 1];
+        const b = px[i + 2];
+
+        // Skip background-colored pixels if close to border color
+        if (bgCount > 0) {
+          const distToBg = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
+          if (distToBg < 45) {
+            continue;
+          }
+        }
+
+        // 4-bit quantization per channel (4096 bins)
+        const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+        const entry = buckets.get(key) || { r: 0, g: 0, b: 0, count: 0 };
+        entry.r += r;
+        entry.g += g;
+        entry.b += b;
+        entry.count++;
+        buckets.set(key, entry);
+      }
+    }
+
+    // If background filtering was too strict, sample core directly without filter
+    if (buckets.size === 0) {
+      for (let y = startY; y < endY; y += 2) {
+        for (let x = startX; x < endX; x += 2) {
+          const i = (y * w + x) * 4;
+          if (px[i + 3] < 180) continue;
+          const r = px[i], g = px[i + 1], b = px[i + 2];
+          const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+          const entry = buckets.get(key) || { r: 0, g: 0, b: 0, count: 0 };
+          entry.r += r; entry.g += g; entry.b += b; entry.count++;
+          buckets.set(key, entry);
+        }
+      }
+    }
+
+    if (buckets.size === 0) {
+      const fallbackColor = dominantColor(ctx, w, h);
+      return { colorHex: fallbackColor, colorName: nameColor(fallbackColor) };
+    }
+
+    // Find bucket with highest pixel count
+    let best = { r: 0, g: 0, b: 0, count: 0 };
+    for (const b of buckets.values()) {
+      if (b.count > best.count) {
+        best = b;
+      }
+    }
+
+    const avgR = Math.round(best.r / best.count);
+    const avgG = Math.round(best.g / best.count);
+    const avgB = Math.round(best.b / best.count);
+
+    const colorHex = rgbToHex({ r: avgR, g: avgG, b: avgB });
+    const colorName = nameColor(colorHex);
+
+    return { colorHex, colorName };
+  } catch (err) {
+    console.warn("Garment color extraction failed, fallback:", err);
+    return { colorHex: "#333333", colorName: "Neutral" };
+  }
+}
+
 export function defaultName(colorName: string, type: GarmentType) {
   return `${colorName} ${GARMENT_TYPES[type].label.split(" /")[0].toLowerCase()}`.replace(/^./, c => c.toUpperCase());
 }

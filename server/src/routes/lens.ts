@@ -13,43 +13,213 @@ function getGeminiApiKey(customKey?: string): string | undefined {
   return customKey || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || undefined;
 }
 
-// Helper: fetch visual catalog images using query
-async function fetchVisualCatalogImages(fashionQuery: string): Promise<SearchResult[]> {
-  try {
-    const cleanFashionQuery = `${fashionQuery} clothing product studio flat lay`;
-    const tokenRes = await fetch(
-      `https://duckduckgo.com/?q=${encodeURIComponent(cleanFashionQuery)}&iax=images&ia=images`,
-      { headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" } }
-    );
-    const tokenHtml = await tokenRes.text();
-    const vqdMatch = tokenHtml.match(/vqd=([\d-]+)/) || tokenHtml.match(/"vqd":"([\d-]+)"/);
+// Curated high-resolution studio flat-lay pieces library
+const CURATED_STUDIO_PIECES: SearchResult[] = [
+  // Tops
+  {
+    title: "Classic Heavyweight White Crewneck Tee",
+    thumbnail: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Washed Charcoal Boxy T-Shirt",
+    thumbnail: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Midnight Navy Relaxed T-Shirt",
+    thumbnail: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Olive Green Heavy Cotton T-Shirt",
+    thumbnail: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Heather Grey Minimalist Tee",
+    thumbnail: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Crisp Oxford Cotton Button-Down Shirt",
+    thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Chunky Knit Wool Cable Sweater Cream",
+    thumbnail: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Heavyweight Black Pullover Hoodie",
+    thumbnail: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
 
-    if (vqdMatch && vqdMatch[1]) {
-      const vqd = vqdMatch[1];
-      const imgRes = await fetch(
-        `https://duckduckgo.com/i.js?l=us-en&o=json&q=${encodeURIComponent(cleanFashionQuery)}&vqd=${vqd}&f=,,,type:photo,,&p=1`,
-        { headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" } }
-      );
-      const data = await imgRes.json();
-      if (Array.isArray(data.results) && data.results.length > 0) {
-        return data.results
-          .slice(0, 12)
-          .map((r: any) => ({
-            title: r.title || "Studio Garment Photo",
-            thumbnail: r.thumbnail || r.image,
-            image: r.image || r.thumbnail,
-            source: r.url || "",
-          }))
-          .filter((r: SearchResult) => r.image && r.thumbnail);
+  // Outerwear
+  {
+    title: "Vintage Washed Blue Denim Trucker Jacket",
+    thumbnail: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Raw Indigo Selvedge Denim Jacket",
+    thumbnail: "https://images.unsplash.com/photo-1548883354-7622d03aca27?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1548883354-7622d03aca27?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Tailored Charcoal Wool Blazer",
+    thumbnail: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Classic Camel Overcoat",
+    thumbnail: "https://images.unsplash.com/photo-1539533018447-63fcce667883?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1539533018447-63fcce667883?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Black Leather Biker Jacket",
+    thumbnail: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+
+  // Bottoms
+  {
+    title: "Classic Straight Leg Blue Denim Jeans",
+    thumbnail: "https://images.unsplash.com/photo-1542272604-780c96856592?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1542272604-780c96856592?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Washed Black Straight Cut Jeans",
+    thumbnail: "https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Tailored Pleated Trousers Black",
+    thumbnail: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Relaxed Fit Chino Trousers Khaki Sand",
+    thumbnail: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Olive Relaxed Cargo Trousers",
+    thumbnail: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+
+  // Footwear
+  {
+    title: "Clean Minimalist White Leather Sneakers",
+    thumbnail: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Black Leather Penny Loafers",
+    thumbnail: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Classic Suede Chelsea Boots Brown",
+    thumbnail: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+];
+
+// Search Wikimedia Commons public clothing catalog
+async function searchWikimediaFashion(query: string): Promise<SearchResult[]> {
+  try {
+    const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(
+      query + " clothing"
+    )}&gsrlimit=12&prop=imageinfo&iiprop=url|thumburl|extmetadata&iiurlwidth=400&format=json&origin=*`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+
+    const res = await fetch(searchUrl, {
+      headers: { "User-Agent": "FitynxFashionApp/2.0 (studio@fitynx.local)" },
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+
+    if (res.ok) {
+      const data = await res.json();
+      const pages = Object.values(data.query?.pages || {}) as any[];
+      const items: SearchResult[] = [];
+
+      for (const p of pages) {
+        const info = p.imageinfo?.[0];
+        if (info && info.thumburl && info.url && !/\.(svg|ogv|ogg|pdf)$/i.test(info.url)) {
+          const rawTitle = (p.title || "")
+            .replace(/^File:/i, "")
+            .replace(/\.[a-z0-9]+$/i, "")
+            .replace(/[-_]/g, " ");
+          items.push({
+            title: rawTitle.length > 50 ? `${rawTitle.slice(0, 50)}…` : rawTitle,
+            thumbnail: info.thumburl,
+            image: info.url,
+            source: "Wikimedia Commons Fashion",
+          });
+        }
       }
+      return items;
     }
-  } catch (e) {
-    console.warn("Catalog image search fallback:", e);
+  } catch (err) {
+    console.warn("Wikimedia fashion search skipped:", err);
   }
   return [];
 }
 
-// POST /api/lens/search-by-image - Reverse image search with Google Lens
+// Fetch visual catalog images using query with multiple fallback sources
+async function fetchVisualCatalogImages(fashionQuery: string): Promise<SearchResult[]> {
+  const queryLower = fashionQuery.toLowerCase();
+  const queryTokens = queryLower.split(/\s+/).filter(t => t.length > 2);
+
+  // 1. Check curated studio collection for instant relevant matches
+  const curatedMatches = CURATED_STUDIO_PIECES.filter(piece => {
+    const text = `${piece.title} ${piece.source}`.toLowerCase();
+    return queryTokens.some(token => text.includes(token));
+  });
+
+  // 2. Fetch live results from Wikimedia fashion catalog
+  const wikiMatches = await searchWikimediaFashion(fashionQuery);
+
+  const combined = [...curatedMatches, ...wikiMatches];
+
+  // If matches found, return them
+  if (combined.length > 0) {
+    return combined.slice(0, 16);
+  }
+
+  // 3. Fallback to full curated studio flat-lay collection
+  return CURATED_STUDIO_PIECES.slice(0, 12);
+}
+
+// POST /api/lens/search-by-image - Reverse image search with Google Lens & Visual Analysis
 router.post("/search-by-image", async (req, res): Promise<void> => {
   try {
     const { image, apiKey: customKey } = req.body;
@@ -69,33 +239,7 @@ router.post("/search-by-image", async (req, res): Promise<void> => {
       }
     }
 
-    const buffer = Buffer.from(base64Data, "base64");
-
-    // 1. Upload the image directly to Google Lens to generate the official reverse search URL
-    let lensUrl: string | undefined;
-    try {
-      const formData = new FormData();
-      formData.append("encoded_image", new Blob([buffer], { type: mimeType }), "garment.jpg");
-
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 4000);
-
-      const lensRes = await fetch("https://lens.google.com/upload", {
-        method: "POST",
-        body: formData,
-        redirect: "manual",
-        signal: controller.signal,
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        },
-      });
-      clearTimeout(timer);
-      lensUrl = lensRes.headers.get("location") || undefined;
-    } catch (lensErr) {
-      console.warn("Direct Google Lens upload error:", lensErr);
-    }
-
-    // 2. Visually analyze the image to identify the exact product
+    // Visually analyze the image with Gemini to identify product characteristics
     let visualQuery = "clothing product studio flat lay";
     let visualTitle = "Identified Garment";
 
@@ -152,11 +296,11 @@ Return ONLY JSON:
       }
     }
 
-    // 3. Fetch visual catalog matches
+    // Fetch visual catalog matches (curated flat-lays + live web)
     const results = await fetchVisualCatalogImages(visualQuery);
 
     res.json({
-      lensUrl: lensUrl || `https://lens.google.com/`,
+      lensUrl: "https://lens.google.com/",
       query: visualQuery,
       visualTitle,
       results,

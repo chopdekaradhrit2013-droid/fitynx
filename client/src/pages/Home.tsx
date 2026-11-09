@@ -9,7 +9,7 @@ import { garmentDataUrl } from "@/lib/garments";
 import { buildSampleWardrobe } from "@/lib/sample";
 import type { GarmentType } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, Globe, HardDrive, Layers, Menu, Palette, ShieldCheck, Shirt, Sparkles, X } from "lucide-react";
+import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, Globe, HardDrive, Layers, Luggage, Menu, MessageSquare, Palette, ShieldCheck, Shirt, Sparkles, Tag, X } from "lucide-react";
 import * as React from "react";
 import { Link } from "wouter";
 
@@ -30,10 +30,13 @@ const img = (t: GarmentType, c: string) => garmentDataUrl(t, c);
 
 const FEATURES = [
   { icon: Shirt, title: "A digital wardrobe", text: "Photograph what you own once. Every piece is catalogued by type, colour and name — searchable, filterable and always with you." },
+  { icon: Layers, title: "Interactive Outfit Canvas", text: "Drag-and-drop moodboard builder with touch support, auto-alignment, auto-complete, and 1200×1500 high-res PNG export." },
+  { icon: MessageSquare, title: "Ask AI Stylist Chat", text: "Conversational Gemini 2.0 Flash director loaded with your closet inventory to answer any outfit or styling question." },
+  { icon: Luggage, title: "Trip capsule packing", text: "Destination weather forecasts and minimal capsule wardrobe formulas that plan outfits for every day of your trip." },
   { icon: Globe, title: "Google Lens reverse search", text: "Reverse search clothes by image directly with Google Lens to find crisp e-commerce catalog flat-lays and matching products." },
   { icon: Palette, title: "Color harmony theory", text: "Interactive color wheel harmonies: complementary contrast, analogous rhythm, monochromatic tone, and neutral grounding." },
-  { icon: Sparkles, title: "Gemini AI & smart stylist", text: "Curated looks with editorial reasoning, silhouette balance, and fit tips — powered by multimodal Gemini AI and local algorithms." },
   { icon: CloudSun, title: "Live weather decider", text: "Live meteorological conditions and thermal layering formulas from Open-Meteo automatically compose outfits suited for today's forecast." },
+  { icon: Tag, title: "Wear tracking & CPW", text: "Track piece wear counts, cost-per-wear breakdown, and automatically log piece wear counts through your daily calendar." },
   { icon: CalendarDays, title: "Roulette & outfit face-off", text: "Overcome decision fatigue with the 10-second Outfit Roulette, or compare two looks head-to-head in the Outfit Face-Off arena." },
 ];
 

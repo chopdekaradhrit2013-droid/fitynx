@@ -3,11 +3,28 @@ import { Modal } from "./Modal";
 import { Button } from "@/components/ui/button";
 import { LensMatchModal } from "./LensMatchModal";
 import { api, getSavedGeminiKey, type ExtractedGarment } from "@/lib/api";
-import { cropImageRegion, analyzeFile, createFastThumbnail } from "@/lib/imaging";
+import { cropImageRegion, analyzeFile, createFastThumbnail, extractGarmentDominantColor } from "@/lib/imaging";
+import { nameColor } from "@/lib/color";
+import { searchInGoogleLens } from "@/lib/lens";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check, Globe, Layers, Loader2, RefreshCw, Sparkles, User, Wand2 } from "lucide-react";
+import { Check, Download, Globe, Layers, Loader2, Palette, RefreshCw, Sparkles, User, Wand2 } from "lucide-react";
 import { toast } from "sonner";
+
+const QUICK_COLORS = [
+  { name: "Black", hex: "#1A1A1A" },
+  { name: "White", hex: "#F8F8F8" },
+  { name: "Charcoal", hex: "#3A3A3C" },
+  { name: "Grey", hex: "#7E7E82" },
+  { name: "Navy", hex: "#1D2D44" },
+  { name: "Denim", hex: "#2B4C6F" },
+  { name: "Olive", hex: "#4B5320" },
+  { name: "Forest", hex: "#1E3F20" },
+  { name: "Burgundy", hex: "#5B1E31" },
+  { name: "Red", hex: "#B22222" },
+  { name: "Camel", hex: "#C19A6B" },
+  { name: "Cream", hex: "#F5F2EB" },
+];
 
 export interface ExtractedPieceDraft {
   id: string;
@@ -62,7 +79,7 @@ export function OutfitExtractorModal({
         const fastThumb = await createFastThumbnail(originalImage, 640, 0.82);
 
         try {
-          const timeoutPromise = new Promise<null>(resolve => setTimeout(() => resolve(null), 5000));
+          const timeoutPromise = new Promise<null>(resolve => setTimeout(() => resolve(null), 8500));
           const apiPromise = api.ai.extractOutfit(fastThumb, apiKey);
           const res = await Promise.race([apiPromise, timeoutPromise]);
           if (res?.garments && res.garments.length > 0) {
@@ -98,10 +115,14 @@ export function OutfitExtractorModal({
 
         if (cancelled) return;
 
-        // Crop pieces concurrently on canvas in parallel (< 15ms)
+        // Crop pieces concurrently on canvas and extract physical pixel color
         const drafts: ExtractedPieceDraft[] = await Promise.all(
           detectedGarments.map(async (g, i) => {
             const cropped = await cropImageRegion(originalImage, g.box2d);
+            
+            // Extract dominant color directly from actual physical pixels of this piece
+            const realColor = await extractGarmentDominantColor(cropped, g.role);
+
             const validTypes = Object.keys(GARMENT_TYPES) as GarmentType[];
             const pieceType: GarmentType = validTypes.includes(g.type as GarmentType)
               ? (g.type as GarmentType)
@@ -109,17 +130,22 @@ export function OutfitExtractorModal({
                 ? "jeans"
                 : "tee";
 
+            const defaultTitle = `${realColor.colorName} ${GARMENT_TYPES[pieceType].label.split(" /")[0]}`;
+            const pieceName = g.name && !g.name.toLowerCase().startsWith("worn ")
+              ? g.name
+              : defaultTitle;
+
             return {
               id: `extracted-${i}-${Date.now()}`,
               role: g.role,
-              name: g.name || (g.role === "top" ? "Worn Top Piece" : "Worn Bottom Piece"),
+              name: pieceName,
               type: pieceType,
-              colorName: g.colorName || "Extracted Color",
-              colorHex: g.colorHex || "#222222",
+              colorName: realColor.colorName,
+              colorHex: realColor.colorHex,
               fabric: g.fabric,
               image: cropped,
               notes: `Extracted from worn outfit photograph. ${g.fabric ? `Fabric: ${g.fabric}.` : ""}`,
-              searchQuery: g.searchQuery,
+              searchQuery: `${realColor.colorName.toLowerCase()} ${GARMENT_TYPES[pieceType].label.toLowerCase()} product flat lay`,
             };
           })
         );
@@ -215,15 +241,33 @@ export function OutfitExtractorModal({
                     />
                   </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setLensIndex(activeTab)}
-                    className="w-full text-xs gap-1.5 border-primary/20 hover:border-primary"
-                  >
-                    <Globe className="size-3 text-[#F26A4B]" /> Match with Google Lens
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        toast.info("Opening Google Lens with your garment photo...");
+                        const res = await searchInGoogleLens(currentPiece.image);
+                        if (res.clipboardCopied) {
+                          toast.success("Garment image copied to clipboard! In Google Lens, press ⌘V to paste.");
+                        }
+                      }}
+                      className="w-full text-xs gap-1.5 border-[#F26A4B]/40 hover:border-[#F26A4B] text-foreground font-medium"
+                    >
+                      <Globe className="size-3 text-[#F26A4B]" /> Search on Google Lens
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setLensIndex(activeTab)}
+                      className="w-full text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <Sparkles className="size-3 text-primary" /> Studio Flat-Lay Matches
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Metadata Fields */}
@@ -254,14 +298,71 @@ export function OutfitExtractorModal({
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-muted-foreground">Color Tone</label>
-                      <div className="mt-1 flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs">
-                        <span
-                          className="size-3 rounded-full border border-black/10 shrink-0"
-                          style={{ backgroundColor: currentPiece.colorHex }}
+                      <label className="text-xs font-medium text-muted-foreground">Detected Color Tone</label>
+                      <div className="mt-1 flex items-center gap-2">
+                        {/* Interactive Clickable Color Swatch */}
+                        <label
+                          title="Click to pick custom color shade"
+                          className="relative flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border shadow-xs overflow-hidden transition-transform active:scale-95"
+                        >
+                          <input
+                            type="color"
+                            value={currentPiece.colorHex}
+                            onChange={e => {
+                              const hex = e.target.value;
+                              updatePiece(activeTab, "colorHex", hex);
+                              updatePiece(activeTab, "colorName", nameColor(hex));
+                            }}
+                            className="absolute inset-0 size-full cursor-pointer opacity-0"
+                          />
+                          <span
+                            className="size-full"
+                            style={{ backgroundColor: currentPiece.colorHex }}
+                          />
+                        </label>
+                        <input
+                          className="studio-input text-xs"
+                          value={currentPiece.colorName}
+                          onChange={e => updatePiece(activeTab, "colorName", e.target.value)}
+                          placeholder="e.g. Olive Green"
                         />
-                        <span className="truncate">{currentPiece.colorName}</span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* 1-Tap Quick Palette Presets */}
+                  <div>
+                    <p className="text-[11px] font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
+                      <Palette className="size-3" /> Quick Tone Presets
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {QUICK_COLORS.map(c => {
+                        const isSelected =
+                          currentPiece.colorName.toLowerCase() === c.name.toLowerCase() ||
+                          currentPiece.colorHex.toLowerCase() === c.hex.toLowerCase();
+                        return (
+                          <button
+                            key={c.name}
+                            type="button"
+                            onClick={() => {
+                              updatePiece(activeTab, "colorHex", c.hex);
+                              updatePiece(activeTab, "colorName", c.name);
+                            }}
+                            className={cn(
+                              "flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] transition-all active:scale-95",
+                              isSelected
+                                ? "border-primary bg-primary/10 font-semibold text-primary ring-1 ring-primary/40"
+                                : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground"
+                            )}
+                          >
+                            <span
+                              className="size-2.5 rounded-full border border-black/10 shrink-0"
+                              style={{ backgroundColor: c.hex }}
+                            />
+                            <span>{c.name}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
