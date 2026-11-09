@@ -121,19 +121,79 @@
 
 @layer base {
   * { @apply border-border outline-ring/50; }
-  html { scroll-behavior: smooth; }
-  body { @apply bg-background text-foreground font-sans antialiased; }
-  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [type="button"]:not(:disabled), [type="submit"]:not(:disabled), a[href], select:not(:disabled), input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled) { @apply cursor-pointer; }
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [type="button"]:not(:disabled), [type="submit"]:not(:disabled), a[href], select:not(:disabled), input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+    touch-action: manipulation;
+  }
 }
 
 @layer components {
   .container { width: 100%; margin-inline: auto; padding-inline: 1rem; }
   .flex { min-height: 0; min-width: 0; }
   .closet-scroll { overscroll-behavior-inline: contain; }
-  .studio-input { width: 100%; border: 1px solid var(--input); border-radius: 0.5rem; background: var(--background); padding: 0.65rem 0.75rem; font-size: 0.8125rem; color: var(--foreground); outline: none; }
+  .studio-input {
+    width: 100%;
+    border: 1px solid var(--input);
+    border-radius: 0.5rem;
+    background: var(--background);
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--foreground);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
   .studio-input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--ring) 30%, transparent); }
   @media (min-width: 640px) { .container { padding-inline: 1.5rem; } }
   @media (min-width: 1024px) { .container { padding-inline: 2rem; max-width: 1280px; } }
+
+  /* Smooth interactive utilities */
+  @keyframes smoothFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes smoothSheetUp {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes smoothMenuPop {
+    from {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-modal-backdrop {
+    animation: smoothFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-modal-sheet {
+    animation: smoothSheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-menu-pop {
+    animation: smoothMenuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }
 
 @layer base {

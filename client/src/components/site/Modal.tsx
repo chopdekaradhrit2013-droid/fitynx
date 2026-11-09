@@ -17,14 +17,34 @@ export function Modal({ open, onClose, title, eyebrow, children, wide }: { open:
   if (!open) return null;
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center md:p-6">
-      <button aria-label="Close dialog" onClick={onClose} className="absolute inset-0 bg-foreground/35 backdrop-blur-[2px]" />
-      <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className={cn("relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-2xl outline-none md:rounded-2xl", wide ? "max-w-3xl" : "max-w-lg")}>
+      <button
+        aria-label="Close dialog"
+        onClick={onClose}
+        className="absolute inset-0 bg-foreground/35 backdrop-blur-[2px] animate-modal-backdrop"
+      />
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className={cn(
+          "relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-card shadow-2xl outline-none md:rounded-2xl animate-modal-sheet",
+          wide ? "max-w-3xl" : "max-w-lg"
+        )}
+      >
         <div className="flex items-start justify-between gap-4 border-b border-border p-5 md:p-6">
           <div>
             {eyebrow && <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{eyebrow}</p>}
             <h2 className="mt-2 font-serif text-2xl tracking-[-0.03em] md:text-3xl">{title}</h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="rounded-full p-2 text-muted-foreground hover:bg-accent hover:text-foreground"><X className="size-4" /></button>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-full p-2 text-muted-foreground transition-all duration-200 hover:bg-accent hover:text-foreground active:scale-90"
+          >
+            <X className="size-4" />
+          </button>
         </div>
         <div className="overflow-y-auto p-5 md:p-6">{children}</div>
       </div>

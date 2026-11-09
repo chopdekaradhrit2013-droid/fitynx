@@ -91,7 +91,7 @@ export function ColorHarmonyMatcher() {
                   setAnchorId(item.id);
                   setComposedLook(null);
                 }}
-                className={`group flex shrink-0 items-center gap-2.5 rounded-xl border p-2 transition-all ${
+                className={`group flex shrink-0 items-center gap-2.5 rounded-xl border p-2 transition-all duration-150 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                   isSelected
                     ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary"
                     : "border-border bg-background hover:border-primary/40"
@@ -126,7 +126,7 @@ export function ColorHarmonyMatcher() {
                       setActiveMode(sch.id);
                       setComposedLook(null);
                     }}
-                    className={`rounded-full border px-4 py-2 text-xs font-medium transition-all ${
+                    className={`rounded-full border px-4 py-2 text-xs font-medium transition-all duration-150 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                       isActive
                         ? "border-primary bg-primary text-primary-foreground shadow-sm"
                         : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground"

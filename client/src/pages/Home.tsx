@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { garmentDataUrl } from "@/lib/garments";
 import { buildSampleWardrobe } from "@/lib/sample";
 import type { GarmentType } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { ArrowRight, CalendarDays, CloudSun, Droplets, EyeOff, HardDrive, Layers, Menu, Palette, Scissors, ShieldCheck, Shirt, Sparkles, X } from "lucide-react";
 import * as React from "react";
 import { Link } from "wouter";
@@ -83,36 +84,77 @@ export default function Home() {
                 </Button>
               </>
             )}
-            <button className="rounded-full p-2 text-muted-foreground md:hidden" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-label="Toggle navigation">{open ? <X className="size-5" /> : <Menu className="size-5" />}</button>
+            <button
+              className="relative flex size-9 items-center justify-center rounded-full p-2 text-muted-foreground transition-all duration-200 active:scale-90 hover:bg-accent md:hidden"
+              onClick={() => setOpen(o => !o)}
+              aria-expanded={open}
+              aria-label="Toggle navigation"
+            >
+              <span className={cn("transition-transform duration-300 transform", open ? "rotate-90 scale-90" : "rotate-0 scale-100")}>
+                {open ? <X className="size-5" /> : <Menu className="size-5" />}
+              </span>
+            </button>
           </div>
         </div>
-        {open && (
-          <nav className="border-t border-border bg-background px-5 pb-5 pt-3 md:hidden" aria-label="Mobile">
-            {NAV.map(n => <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="block border-b border-border py-3 text-sm">{n.label}</a>)}
-            <div className="mt-4 space-y-2">
-              {isAuthenticated ? (
-                <>
-                  <div className="flex items-center justify-between py-2 border-b border-border">
-                    <span className="text-sm font-medium">{user?.name}</span>
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Signed in</span>
-                  </div>
-                  <Button asChild className="w-full">
-                    <Link href="/app">Open studio <ArrowRight className="size-4" /></Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/login">Sign in</Link>
-                  </Button>
-                  <Button asChild className="w-full">
-                    <Link href="/signup">Create account <ArrowRight className="size-4" /></Link>
-                  </Button>
-                </>
-              )}
-            </div>
-          </nav>
-        )}
+
+        {/* Smooth Mobile Navigation Drawer / Dropdown */}
+        <div
+          className={cn(
+            "grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden border-border",
+            open ? "grid-rows-[1fr] opacity-100 border-t" : "grid-rows-[0fr] opacity-0 pointer-events-none"
+          )}
+        >
+          <div className="overflow-hidden">
+            <nav className="bg-background px-5 pb-6 pt-3 space-y-1" aria-label="Mobile">
+              {NAV.map((n, idx) => (
+                <a
+                  key={n.href}
+                  href={n.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "block border-b border-border/70 py-3 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] active:text-foreground",
+                    open ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
+                  )}
+                  style={{
+                    transitionDelay: open ? `${50 + idx * 30}ms` : "0ms",
+                  }}
+                >
+                  {n.label}
+                </a>
+              ))}
+              <div
+                className={cn(
+                  "pt-3 space-y-2.5 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  open ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
+                )}
+                style={{
+                  transitionDelay: open ? `${50 + NAV.length * 30}ms` : "0ms",
+                }}
+              >
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center justify-between py-2 border-b border-border/70">
+                      <span className="text-sm font-medium">{user?.name}</span>
+                      <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">Signed in</span>
+                    </div>
+                    <Button asChild className="w-full">
+                      <Link href="/app">Open studio <ArrowRight className="size-4" /></Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href="/login">Sign in</Link>
+                    </Button>
+                    <Button asChild className="w-full">
+                      <Link href="/signup">Create account <ArrowRight className="size-4" /></Link>
+                    </Button>
+                  </>
+                )}
+              </div>
+            </nav>
+          </div>
+        </div>
       </header>
 
       <main id="main">

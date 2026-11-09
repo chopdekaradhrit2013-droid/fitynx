@@ -88,9 +88,9 @@ export function OutfitRoulette() {
                   key={occ}
                   type="button"
                   onClick={() => setFilters(f => ({ ...f, occasion: occ }))}
-                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                  className={`rounded-full border px-3 py-1 text-xs transition-all duration-150 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     filters.occasion === occ
-                      ? "border-primary bg-primary text-primary-foreground font-medium"
+                      ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
                       : "border-border text-muted-foreground hover:bg-accent"
                   }`}
                 >
@@ -108,9 +108,9 @@ export function OutfitRoulette() {
                   key={v.value}
                   type="button"
                   onClick={() => setFilters(f => ({ ...f, vibe: v.value }))}
-                  className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                  className={`rounded-lg border px-3 py-1.5 text-xs transition-all duration-150 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                     filters.vibe === v.value
-                      ? "border-primary bg-primary text-primary-foreground font-medium"
+                      ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
                       : "border-border text-muted-foreground hover:bg-accent"
                   }`}
                 >

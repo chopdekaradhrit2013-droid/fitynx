@@ -48,7 +48,7 @@ export function UserMenu({ compact = false }: UserMenuProps) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2.5 rounded-full border border-border bg-card/80 p-1 pr-3 text-left transition-all hover:border-foreground/30 hover:bg-card focus:outline-none focus:ring-2 focus:ring-primary/20"
+        className="flex items-center gap-2.5 rounded-full border border-border bg-card/80 p-1 pr-3 text-left transition-all duration-200 hover:border-foreground/30 hover:bg-card active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/20"
         aria-expanded={open}
         aria-label="User account menu"
       >
@@ -76,7 +76,7 @@ export function UserMenu({ compact = false }: UserMenuProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-border bg-card p-2 shadow-2xl backdrop-blur-md">
+        <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-border bg-card p-2 shadow-2xl backdrop-blur-md animate-menu-pop origin-top-right">
           <div className="border-b border-border/80 px-3 py-3">
             <div className="flex items-center gap-2.5">
               {user.avatar ? (
@@ -101,7 +101,7 @@ export function UserMenu({ compact = false }: UserMenuProps) {
             <Link
               href="/app"
               onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-accent/60"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground transition-all duration-150 hover:bg-accent/60 active:scale-[0.98]"
             >
               <Shirt className="size-3.5 text-muted-foreground" />
               Open Studio
@@ -109,7 +109,7 @@ export function UserMenu({ compact = false }: UserMenuProps) {
             <Link
               href="/app/settings"
               onClick={() => setOpen(false)}
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground hover:bg-accent/60"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-foreground transition-all duration-150 hover:bg-accent/60 active:scale-[0.98]"
             >
               <SettingsIcon className="size-3.5 text-muted-foreground" />
               Wardrobe &amp; Account Settings
@@ -120,7 +120,7 @@ export function UserMenu({ compact = false }: UserMenuProps) {
             <button
               type="button"
               onClick={handleSignOut}
-              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/10"
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium text-destructive transition-all duration-150 hover:bg-destructive/10 active:scale-[0.98]"
             >
               <LogOut className="size-3.5" />
               Sign Out

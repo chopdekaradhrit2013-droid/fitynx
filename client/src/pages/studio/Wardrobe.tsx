@@ -88,9 +88,9 @@ export default function Wardrobe() {
                     onClick={() => setGroup(g)}
                     aria-pressed={group === g}
                     className={cn(
-                      "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs transition-colors",
+                      "whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs transition-all duration-200 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                       group === g
-                        ? "border-primary bg-primary text-primary-foreground font-medium"
+                        ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
                         : "border-border text-muted-foreground hover:bg-accent hover:text-foreground"
                     )}
                   >
@@ -107,7 +107,7 @@ export default function Wardrobe() {
                     type="button"
                     onClick={() => setTopView("rail")}
                     className={cn(
-                      "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                      "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-200 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                       topView === "rail"
                         ? "bg-primary text-primary-foreground shadow-xs"
                         : "text-muted-foreground hover:text-foreground"
@@ -121,7 +121,7 @@ export default function Wardrobe() {
                     type="button"
                     onClick={() => setTopView("grid")}
                     className={cn(
-                      "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                      "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all duration-200 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                       topView === "grid"
                         ? "bg-primary text-primary-foreground shadow-xs"
                         : "text-muted-foreground hover:text-foreground"
@@ -210,7 +210,7 @@ export default function Wardrobe() {
                     <button
                       key={item.id}
                       onClick={() => setEditing(item)}
-                      className="group overflow-hidden rounded-xl border border-border bg-card text-left transition-shadow hover:shadow-[0_12px_32px_rgba(30,30,30,0.1)]"
+                      className="group overflow-hidden rounded-xl border border-border bg-card text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(30,30,30,0.1)] active:scale-[0.98] ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       <div className="relative aspect-[4/5] bg-background p-4 flex items-center justify-center">
                         {itemImage(item) ? (

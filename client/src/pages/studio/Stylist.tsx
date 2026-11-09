@@ -135,13 +135,13 @@ export default function StylistPage() {
               type="button"
               onClick={() => setActiveTab(t.id)}
               className={cn(
-                "group flex shrink-0 items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-xs font-medium transition-all",
+                "group flex shrink-0 items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-xs font-medium transition-all duration-200 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                 isActive
                   ? "border-primary bg-primary text-primary-foreground shadow-sm"
                   : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
             >
-              <Icon className={cn("size-3.5", isActive ? "text-primary-foreground" : "text-[#F26A4B]")} />
+              <Icon className={cn("size-3.5 transition-transform duration-200 group-hover:scale-110", isActive ? "text-primary-foreground" : "text-[#F26A4B]")} />
               <span>{t.label}</span>
             </button>
           );
@@ -168,9 +168,9 @@ export default function StylistPage() {
                       aria-pressed={brief.occasion === o}
                       onClick={() => set("occasion", o)}
                       className={cn(
-                        "rounded-full border px-3 py-1.5 text-xs transition-colors",
+                        "rounded-full border px-3 py-1.5 text-xs transition-all duration-150 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                         brief.occasion === o
-                          ? "border-primary bg-primary text-primary-foreground font-medium"
+                          ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
                           : "border-border text-muted-foreground hover:bg-accent"
                       )}
                     >
@@ -188,9 +188,9 @@ export default function StylistPage() {
                       aria-pressed={brief.vibe === v.value}
                       onClick={() => set("vibe", v.value)}
                       className={cn(
-                        "rounded-lg border px-3 py-2 text-sm transition-colors",
+                        "rounded-lg border px-3 py-2 text-sm transition-all duration-150 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                         brief.vibe === v.value
-                          ? "border-primary bg-primary text-primary-foreground font-medium"
+                          ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
                           : "border-border hover:bg-accent"
                       )}
                     >
@@ -208,9 +208,9 @@ export default function StylistPage() {
                       aria-pressed={brief.weather === w.value}
                       onClick={() => set("weather", w.value)}
                       className={cn(
-                        "rounded-full border px-3 py-1.5 text-xs transition-colors",
+                        "rounded-full border px-3 py-1.5 text-xs transition-all duration-150 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                         brief.weather === w.value
-                          ? "border-primary bg-primary text-primary-foreground font-medium"
+                          ? "border-primary bg-primary text-primary-foreground font-medium shadow-xs"
                           : "border-border text-muted-foreground hover:bg-accent"
                       )}
                     >

@@ -210,7 +210,7 @@ export function OutfitExtractorModal({
                   type="button"
                   onClick={() => setActiveTab(idx)}
                   className={cn(
-                    "flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all",
+                    "flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all duration-150 active:scale-95 ease-[cubic-bezier(0.16,1,0.3,1)]",
                     activeTab === idx
                       ? "border-primary bg-primary text-primary-foreground shadow-xs"
                       : "border-border bg-card text-muted-foreground hover:bg-accent hover:text-foreground"
