@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { actions, useStore } from "@/lib/store";
 import { api, getSavedGeminiKey, saveGeminiKey } from "@/lib/api";
-import { Check, Download, Eye, EyeOff, Key, LogOut, Moon, ShieldCheck, Sparkles, Sun, Trash2 } from "lucide-react";
+import { Check, Download, Eye, EyeOff, Key, LogOut, Moon, ShieldCheck, Sparkles, Sun, Trash2, Upload } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -55,6 +55,27 @@ export default function Settings() {
     a.download = `fitynx-${user?.name?.toLowerCase().replace(/\s+/g, "-") || "wardrobe"}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const importFileRef = React.useRef<HTMLInputElement>(null);
+
+  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (parsed.items || parsed.looks || parsed.plan) {
+        await actions.importBackup(parsed);
+        toast.success(`Restored ${(parsed.items || []).length} pieces and ${(parsed.looks || []).length} looks!`);
+      } else {
+        toast.error("Invalid FITYNX backup JSON file");
+      }
+    } catch {
+      toast.error("Could not read backup file");
+    } finally {
+      if (e.target) e.target.value = "";
+    }
   };
 
   const handleSignOut = async () => {
@@ -176,6 +197,16 @@ export default function Settings() {
             <Button variant="outline" onClick={exportData} disabled={!items.length}>
               <Download className="size-4" /> Export JSON
             </Button>
+            <input
+              ref={importFileRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={handleImportBackup}
+            />
+            <Button variant="outline" onClick={() => importFileRef.current?.click()}>
+              <Upload className="size-4" /> Import JSON Backup
+            </Button>
           </div>
         </Card>
 
@@ -205,7 +236,7 @@ export default function Settings() {
       </div>
 
       <p className="text-xs leading-5 text-muted-foreground">
-        How the stylist works: looks are composed on-device by a rules-based engine that scores colour harmony, occasion formality and weather suitability across the pieces you own. Garment colour is read from your photo; background removal works best on a plain backdrop.
+        How the stylist works: looks are composed on-device and via Google Gemini 2.0 Flash with color harmony theory, occasion formality, thermal layering, and Google Lens visual search. Your wardrobe stays personal and synced to your account.
       </p>
     </div>
   );

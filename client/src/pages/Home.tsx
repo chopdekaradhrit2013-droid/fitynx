@@ -1,6 +1,7 @@
 import { Brand } from "@/components/site/Brand";
 import { Reveal } from "@/components/site/Reveal";
 import { UserMenu } from "@/components/site/UserMenu";
+import { PullCordLamp } from "@/components/site/PullCordLamp";
 import { Button } from "@/components/ui/button";
 import ClothingRailHero, { type RailGarment } from "@/components/ui/product-rail-gallery";
 import { useAuth } from "@/contexts/AuthContext";
@@ -61,7 +62,9 @@ export default function Home() {
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground">Skip to content</a>
 
       <header className={`sticky top-0 z-40 transition-all ${scrolled ? "border-b border-border bg-background/85 backdrop-blur-md" : "border-b border-transparent"}`}>
-        <div className="mx-auto flex h-[72px] max-w-[1320px] items-center justify-between px-5 md:px-10">
+        <div className="relative mx-auto flex h-[72px] max-w-[1320px] items-center justify-between px-5 md:px-10">
+          {/* Interactive hanging lamp pull-string theme toggle */}
+          <PullCordLamp className="absolute -top-1 right-20 sm:right-48 md:right-72" />
           <Brand />
           <nav className="hidden items-center gap-8 text-sm md:flex" aria-label="Primary">
             {NAV.map(n => <a key={n.href} href={n.href} className="text-muted-foreground transition-colors hover:text-foreground">{n.label}</a>)}

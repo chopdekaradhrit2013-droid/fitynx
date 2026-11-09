@@ -1,6 +1,7 @@
 import { Brand } from "@/components/site/Brand";
 import { UserMenu } from "@/components/site/UserMenu";
 import { AiStylistDrawer } from "@/components/site/AiStylistDrawer";
+import { PullCordLamp } from "@/components/site/PullCordLamp";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -176,7 +177,9 @@ export default function Studio() {
       </aside>
 
       <main className="lg:pl-[260px]">
-        <header className="sticky top-0 z-20 flex h-[68px] items-center justify-between border-b border-border bg-background/90 px-5 backdrop-blur md:px-8">
+        <header className="relative sticky top-0 z-20 flex h-[68px] items-center justify-between border-b border-border bg-background/90 px-5 backdrop-blur md:px-8">
+          {/* Artisanal hanging lamp pull-cord for light/dark mode */}
+          <PullCordLamp className="absolute -top-1 right-24 sm:right-32" />
           <div className="flex items-center gap-3">
             <button
               className="rounded-full p-2 text-muted-foreground transition-all duration-200 active:scale-90 hover:bg-accent hover:text-foreground lg:hidden"

@@ -296,6 +296,30 @@ export const actions = {
       }
     }
   },
+
+  async importBackup(data: { items?: WardrobeItem[]; looks?: Look[]; plan?: PlanEntry[] }) {
+    const newItems = Array.isArray(data.items) ? data.items : [];
+    const newLooks = Array.isArray(data.looks) ? data.looks : [];
+    const newPlan = Array.isArray(data.plan) ? data.plan : [];
+
+    set({
+      items: newItems,
+      looks: newLooks,
+      plan: newPlan,
+    });
+    KEYS.forEach(persistLocal);
+    await writeQueue;
+
+    if (getAuthToken()) {
+      try {
+        if (newItems.length > 0) await api.wardrobe.add(newItems);
+        if (newLooks.length > 0) await api.looks.save(newLooks);
+        for (const p of newPlan) await api.plans.add(p);
+      } catch (err) {
+        console.error("Backend error syncing imported backup:", err);
+      }
+    }
+  },
 };
 
 function subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; }

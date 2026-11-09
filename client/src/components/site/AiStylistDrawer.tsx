@@ -290,3 +290,4 @@ export function AiStylistDrawer({ open, onClose }: AiStylistDrawerProps) {
     </div>
   );
 }
+
