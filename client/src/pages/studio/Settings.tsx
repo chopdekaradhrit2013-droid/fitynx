@@ -132,7 +132,7 @@ export default function Settings() {
               {serverActive || geminiKey ? "Gemini 2.0 Flash Active" : "Local Rules-Based AI Active"}
             </p>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Connect your Gemini API key to enable visual garment fabric detection, automated styling descriptions, and Google Lens queries.
+              Connect your Gemini API key to enable visual garment fabric detection, automated styling descriptions, and studio matching.
             </p>
             <div className="relative mt-2">
               <Key className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
@@ -236,7 +236,7 @@ export default function Settings() {
       </div>
 
       <p className="text-xs leading-5 text-muted-foreground">
-        How the stylist works: looks are composed on-device and via Google Gemini 2.0 Flash with color harmony theory, occasion formality, thermal layering, and Google Lens visual search. Your wardrobe stays personal and synced to your account.
+        How the stylist works: looks are composed on-device and via Google Gemini 2.0 Flash with color harmony theory, occasion formality, thermal layering, and visual studio matching. Your wardrobe stays personal and synced to your account.
       </p>
     </div>
   );

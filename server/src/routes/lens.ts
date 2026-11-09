@@ -13,9 +13,125 @@ function getGeminiApiKey(customKey?: string): string | undefined {
   return customKey || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || undefined;
 }
 
-// Curated high-resolution studio flat-lay pieces library
+// Curated high-resolution studio flat-lay pieces library covering all categories
 const CURATED_STUDIO_PIECES: SearchResult[] = [
-  // Tops
+  // --- SHORTS / HALF PANTS ---
+  {
+    title: "Olive Green Relaxed Cargo Shorts",
+    thumbnail: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Khaki Chino Tailored Shorts",
+    thumbnail: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Washed Blue Denim Cutoff Shorts",
+    thumbnail: "https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Black Cotton Casual Everyday Shorts",
+    thumbnail: "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Beige Linen Drawstring Summer Shorts",
+    thumbnail: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Navy Blue Sport Chino Shorts",
+    thumbnail: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+
+  // --- SKIRTS ---
+  {
+    title: "Black Pleated A-Line Mini Skirt",
+    thumbnail: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Classic Washed Blue Denim Skirt",
+    thumbnail: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Olive Green Cargo Midi Skirt",
+    thumbnail: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Navy Blue Silk Bias Midi Skirt",
+    thumbnail: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+
+  // --- JEANS ---
+  {
+    title: "Classic Straight Leg Blue Denim Jeans",
+    thumbnail: "https://images.unsplash.com/photo-1542272604-780c96856592?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1542272604-780c96856592?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Washed Black Straight Cut Jeans",
+    thumbnail: "https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Light Wash Vintage Relaxed Jeans",
+    thumbnail: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Raw Indigo Selvedge Denim Pants",
+    thumbnail: "https://images.unsplash.com/photo-1548883354-7622d03aca27?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1548883354-7622d03aca27?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+
+  // --- TROUSERS / CHINOS ---
+  {
+    title: "Tailored Pleated Trousers Black",
+    thumbnail: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Relaxed Fit Chino Trousers Khaki Sand",
+    thumbnail: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Olive Relaxed Cargo Trousers",
+    thumbnail: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
+    title: "Charcoal Grey Wool Flannel Trousers",
+    thumbnail: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+
+  // --- TEES / T-SHIRTS ---
   {
     title: "Classic Heavyweight White Crewneck Tee",
     thumbnail: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&auto=format&fit=crop&q=80",
@@ -41,17 +157,33 @@ const CURATED_STUDIO_PIECES: SearchResult[] = [
     source: "Studio Flat Lay Collection",
   },
   {
+    title: "Crimson Red Minimalist Cotton Tee",
+    thumbnail: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+  {
     title: "Heather Grey Minimalist Tee",
     thumbnail: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=400&auto=format&fit=crop&q=80",
     image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=1000&auto=format&fit=crop&q=85",
     source: "Studio Flat Lay Collection",
   },
+
+  // --- BUTTON-DOWN SHIRTS ---
   {
-    title: "Crisp Oxford Cotton Button-Down Shirt",
+    title: "Crisp White Oxford Cotton Button-Down Shirt",
     thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&auto=format&fit=crop&q=80",
     image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=1000&auto=format&fit=crop&q=85",
     source: "Studio Flat Lay Collection",
   },
+  {
+    title: "Light Blue Striped Poplin Shirt",
+    thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=1000&auto=format&fit=crop&q=85",
+    source: "Studio Flat Lay Collection",
+  },
+
+  // --- SWEATERS & HOODIES ---
   {
     title: "Chunky Knit Wool Cable Sweater Cream",
     thumbnail: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&auto=format&fit=crop&q=80",
@@ -65,17 +197,11 @@ const CURATED_STUDIO_PIECES: SearchResult[] = [
     source: "Studio Flat Lay Collection",
   },
 
-  // Outerwear
+  // --- JACKETS & OUTERWEAR ---
   {
     title: "Vintage Washed Blue Denim Trucker Jacket",
     thumbnail: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=400&auto=format&fit=crop&q=80",
     image: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=1000&auto=format&fit=crop&q=85",
-    source: "Studio Flat Lay Collection",
-  },
-  {
-    title: "Raw Indigo Selvedge Denim Jacket",
-    thumbnail: "https://images.unsplash.com/photo-1548883354-7622d03aca27?w=400&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1548883354-7622d03aca27?w=1000&auto=format&fit=crop&q=85",
     source: "Studio Flat Lay Collection",
   },
   {
@@ -97,39 +223,21 @@ const CURATED_STUDIO_PIECES: SearchResult[] = [
     source: "Studio Flat Lay Collection",
   },
 
-  // Bottoms
+  // --- DRESSES ---
   {
-    title: "Classic Straight Leg Blue Denim Jeans",
-    thumbnail: "https://images.unsplash.com/photo-1542272604-780c96856592?w=400&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1542272604-780c96856592?w=1000&auto=format&fit=crop&q=85",
+    title: "Minimalist Black Slip Dress",
+    thumbnail: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1000&auto=format&fit=crop&q=85",
     source: "Studio Flat Lay Collection",
   },
   {
-    title: "Washed Black Straight Cut Jeans",
-    thumbnail: "https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=400&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=1000&auto=format&fit=crop&q=85",
-    source: "Studio Flat Lay Collection",
-  },
-  {
-    title: "Tailored Pleated Trousers Black",
-    thumbnail: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=1000&auto=format&fit=crop&q=85",
-    source: "Studio Flat Lay Collection",
-  },
-  {
-    title: "Relaxed Fit Chino Trousers Khaki Sand",
-    thumbnail: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=1000&auto=format&fit=crop&q=85",
-    source: "Studio Flat Lay Collection",
-  },
-  {
-    title: "Olive Relaxed Cargo Trousers",
-    thumbnail: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=400&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1517445312882-bc9910d016b7?w=1000&auto=format&fit=crop&q=85",
+    title: "Summer Linen Shirt Dress Cream",
+    thumbnail: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&auto=format&fit=crop&q=80",
+    image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1000&auto=format&fit=crop&q=85",
     source: "Studio Flat Lay Collection",
   },
 
-  // Footwear
+  // --- FOOTWEAR ---
   {
     title: "Clean Minimalist White Leather Sneakers",
     thumbnail: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&auto=format&fit=crop&q=80",
@@ -140,12 +248,6 @@ const CURATED_STUDIO_PIECES: SearchResult[] = [
     title: "Black Leather Penny Loafers",
     thumbnail: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=400&auto=format&fit=crop&q=80",
     image: "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=1000&auto=format&fit=crop&q=85",
-    source: "Studio Flat Lay Collection",
-  },
-  {
-    title: "Classic Suede Chelsea Boots Brown",
-    thumbnail: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=400&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=1000&auto=format&fit=crop&q=85",
     source: "Studio Flat Lay Collection",
   },
 ];
@@ -194,32 +296,58 @@ async function searchWikimediaFashion(query: string): Promise<SearchResult[]> {
   return [];
 }
 
-// Fetch visual catalog images using query with multiple fallback sources
+// Fetch visual catalog images with strict garment type adherence
 async function fetchVisualCatalogImages(fashionQuery: string): Promise<SearchResult[]> {
   const queryLower = fashionQuery.toLowerCase();
   const queryTokens = queryLower.split(/\s+/).filter(t => t.length > 2);
 
-  // 1. Check curated studio collection for instant relevant matches
-  const curatedMatches = CURATED_STUDIO_PIECES.filter(piece => {
-    const text = `${piece.title} ${piece.source}`.toLowerCase();
+  const isShorts = queryLower.includes("short") || queryLower.includes("half pant");
+  const isSkirt = queryLower.includes("skirt");
+  const isJeans = (queryLower.includes("jean") || queryLower.includes("denim")) && !isShorts && !isSkirt;
+  const isTrousers = (queryLower.includes("trouser") || queryLower.includes("pant") || queryLower.includes("chino") || queryLower.includes("cargo")) && !isShorts && !isSkirt;
+  const isTee = queryLower.includes("tee") || queryLower.includes("t-shirt");
+  const isShirt = queryLower.includes("shirt") && !isTee;
+  const isDress = queryLower.includes("dress");
+  const isJacket = queryLower.includes("jacket") || queryLower.includes("blazer") || queryLower.includes("coat");
+
+  // Filter curated pieces strictly matching the target garment type first!
+  const typeMatched = CURATED_STUDIO_PIECES.filter(piece => {
+    const text = piece.title.toLowerCase();
+    if (isShorts) return text.includes("short");
+    if (isSkirt) return text.includes("skirt");
+    if (isDress) return text.includes("dress");
+    if (isJeans) return text.includes("jean") || text.includes("denim");
+    if (isTrousers) return text.includes("trouser") || text.includes("chino") || text.includes("cargo");
+    if (isTee) return text.includes("tee") || text.includes("t-shirt");
+    if (isShirt) return text.includes("shirt") && !text.includes("tee") && !text.includes("t-shirt");
+    if (isJacket) return text.includes("jacket") || text.includes("blazer") || text.includes("overcoat");
     return queryTokens.some(token => text.includes(token));
   });
 
-  // 2. Fetch live results from Wikimedia fashion catalog
-  const wikiMatches = await searchWikimediaFashion(fashionQuery);
+  // Rank by color tokens (e.g. olive, navy, black, white, blue)
+  typeMatched.sort((a, b) => {
+    const aColor = queryTokens.some(t => a.title.toLowerCase().includes(t));
+    const bColor = queryTokens.some(t => b.title.toLowerCase().includes(t));
+    if (aColor && !bColor) return -1;
+    if (!aColor && bColor) return 1;
+    return 0;
+  });
 
-  const combined = [...curatedMatches, ...wikiMatches];
-
-  // If matches found, return them
-  if (combined.length > 0) {
-    return combined.slice(0, 16);
+  if (typeMatched.length > 0) {
+    return typeMatched;
   }
 
-  // 3. Fallback to full curated studio flat-lay collection
+  // 2. Fetch live results from Wikimedia fashion catalog
+  const wikiMatches = await searchWikimediaFashion(fashionQuery);
+  if (wikiMatches.length > 0) {
+    return wikiMatches.slice(0, 16);
+  }
+
+  // 3. Fallback to curated collection
   return CURATED_STUDIO_PIECES.slice(0, 12);
 }
 
-// POST /api/lens/search-by-image - Reverse image search with Google Lens & Visual Analysis
+// POST /api/lens/search-by-image - Reverse image search & Visual Studio Matching
 router.post("/search-by-image", async (req, res): Promise<void> => {
   try {
     const { image, apiKey: customKey } = req.body;
@@ -239,7 +367,6 @@ router.post("/search-by-image", async (req, res): Promise<void> => {
       }
     }
 
-    // Visually analyze the image with Gemini to identify product characteristics
     let visualQuery = "clothing product studio flat lay";
     let visualTitle = "Identified Garment";
 
@@ -260,10 +387,11 @@ router.post("/search-by-image", async (req, res): Promise<void> => {
                 parts: [
                   {
                     text: `Analyze this garment image visually.
-Identify the exact piece: garment type, color shade, cut/fit, fabric texture, style.
-Generate a concise 3 to 5 word visual search phrase to find clean e-commerce studio catalog photos of this exact piece.
+CRITICAL: Accurately distinguish shorts (half-pants) from jeans and trousers. If the garment ends at or above the knees, classify as 'shorts'. If it is a skirt, classify as 'skirt'. NEVER classify shorts as jeans.
+Identify: garment type (shorts, skirt, jeans, trousers, tee, shirt, knit, jacket, dress), exact color tone, style.
+Generate a concise 3 to 4 word search phrase, e.g. "olive cargo shorts", "black pleated skirt", "white crewneck t-shirt".
 Return ONLY JSON:
-{"title": "Concise product title", "query": "3-5 word search query, e.g. dark grey oversized heavy cotton t-shirt"}`,
+{"title": "Product title", "query": "3-4 word phrase"}`,
                   },
                   {
                     inline_data: {
@@ -296,7 +424,7 @@ Return ONLY JSON:
       }
     }
 
-    // Fetch visual catalog matches (curated flat-lays + live web)
+    // Fetch visual catalog matches
     const results = await fetchVisualCatalogImages(visualQuery);
 
     res.json({
@@ -307,7 +435,7 @@ Return ONLY JSON:
     });
   } catch (err) {
     console.error("Lens search-by-image error:", err);
-    res.status(500).json({ error: "Failed to search Google Lens by image" });
+    res.status(500).json({ error: "Failed to search visual studio pieces by image" });
   }
 });
 

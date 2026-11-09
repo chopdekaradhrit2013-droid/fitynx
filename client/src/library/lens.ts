@@ -119,3 +119,4 @@ export function downloadGarmentImage(imageSource: string, filename = "garment-pi
   link.click();
   link.remove();
 }
+

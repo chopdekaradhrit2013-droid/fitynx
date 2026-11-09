@@ -181,6 +181,7 @@ Specifically look for:
 
 For EACH detected piece of clothing, detect its 2D bounding box normalized from 0 to 1000: [ymin, xmin, ymax, xmax].
 Important: Ensure the box covers the full garment from neckline/collar/waist to hem.
+CRITICAL: Accurately distinguish shorts (half-pants) from jeans and trousers. If the lower garment ends at or above the knees, you MUST classify it as "shorts". If it is a skirt, classify as "skirt". NEVER classify shorts or skirts as jeans.
 Accurately identify the true color shade of the garment (e.g. olive green, navy blue, washed black, crimson red, off-white, camel tan, burgundy, sage, cream). Do NOT default to black or neutral if the clothing has color.
 
 Return ONLY valid JSON matching this exact structure:

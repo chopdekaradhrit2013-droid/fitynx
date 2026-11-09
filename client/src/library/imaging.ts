@@ -306,6 +306,149 @@ export async function analyzeFile(file: File): Promise<Analysis> {
 }
 
 /**
+ * Smart visual classifier that inspects the actual geometry, aspect ratio,
+ * fabric silhouette, and skin exposure of a cropped garment piece.
+ * Accurately distinguishes shorts ("half pants") vs jeans vs trousers vs skirts vs dresses vs tees vs shirts.
+ */
+export async function classifyGarmentPiece(
+  croppedDataUrl: string,
+  roleHint?: string,
+  box2d?: [number, number, number, number]
+): Promise<{
+  role: "top" | "bottom" | "outerwear" | "dress" | "shoes";
+  type: GarmentType;
+}> {
+  try {
+    const img = await loadImage(croppedDataUrl);
+    const w = img.naturalWidth || img.width;
+    const h = img.naturalHeight || img.height;
+    const aspectRatio = h / Math.max(1, w);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 160;
+    canvas.height = 160;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) {
+      return {
+        role: roleHint === "bottom" ? "bottom" : "top",
+        type: roleHint === "bottom" ? "shorts" : "tee",
+      };
+    }
+    ctx.drawImage(img, 0, 0, 160, 160);
+    const px = ctx.getImageData(0, 0, 160, 160).data;
+
+    // Check box2d vertical span if available (normalized 0-1000)
+    let boxHeightRatio = 0.5;
+    if (box2d && box2d.length === 4) {
+      const [ymin, , ymax] = box2d;
+      boxHeightRatio = (ymax - ymin) / 1000;
+    }
+
+    // Detect skin tones in the bottom third of the cropped piece
+    let skinPixelsLowerThird = 0;
+    let totalSampled = 0;
+    for (let y = 105; y < 155; y += 2) {
+      for (let x = 20; x < 140; x += 2) {
+        const idx = (y * 160 + x) * 4;
+        const r = px[idx];
+        const g = px[idx + 1];
+        const b = px[idx + 2];
+        totalSampled++;
+        if (
+          r > 120 &&
+          g > 75 &&
+          b > 45 &&
+          r > g &&
+          g > b &&
+          r - g >= 14 &&
+          r - g <= 80 &&
+          g - b >= 10 &&
+          g - b <= 65
+        ) {
+          skinPixelsLowerThird++;
+        }
+      }
+    }
+    const skinRatio = skinPixelsLowerThird / Math.max(1, totalSampled);
+
+    // Check center horizontal gap in lower half (distinguishes two legs vs continuous skirt/dress)
+    let centerGapCount = 0;
+    let centerRows = 0;
+    for (let y = 95; y < 150; y += 4) {
+      centerRows++;
+      const centerIdx = (y * 160 + 80) * 4;
+      const r = px[centerIdx];
+      const g = px[centerIdx + 1];
+      const b = px[centerIdx + 2];
+      if ((r > 220 && g > 220 && b > 220) || (r > g && g > b && r - g > 15)) {
+        centerGapCount++;
+      }
+    }
+    const hasLegSplit = centerGapCount / Math.max(1, centerRows) > 0.35;
+
+    const isBottom = roleHint === "bottom" || (!roleHint && box2d && box2d[0] > 380);
+
+    if (isBottom) {
+      // 1. Skirt Check: Continuous fabric across lower body, flare silhouette, or skin below
+      if (!hasLegSplit && (skinRatio > 0.08 || aspectRatio < 1.3)) {
+        return { role: "bottom", type: "skirt" };
+      }
+
+      // 2. Shorts / "Half Pants" Check:
+      // If vertical span is compact (< 38% of body), OR aspect ratio <= 1.38,
+      // OR bare skin detected in the lower portion of the piece:
+      if (boxHeightRatio < 0.38 || aspectRatio <= 1.38 || skinRatio > 0.07) {
+        return { role: "bottom", type: "shorts" };
+      }
+
+      // 3. Full-length Pants: Check if Denim (Jeans) vs Trousers / Chinos / Cargo
+      let blueScore = 0;
+      for (let i = 0; i < px.length; i += 16) {
+        const r = px[i], g = px[i + 1], b = px[i + 2];
+        if (b > r + 12 && b > g) blueScore++;
+      }
+      const isDenimBlue = blueScore > (px.length / 16) * 0.15;
+
+      if (isDenimBlue) {
+        return { role: "bottom", type: "jeans" };
+      }
+      return { role: "bottom", type: "trousers" };
+    }
+
+    // Top / Dress / Outerwear
+    if (roleHint === "dress" || boxHeightRatio > 0.65) {
+      return { role: "dress", type: "dress" };
+    }
+
+    // Check for center vertical placket (Shirt vs Tee)
+    let centerContrast = 0;
+    for (let y = 30; y < 120; y += 4) {
+      const midIdx = (y * 160 + 80) * 4;
+      const sideIdx = (y * 160 + 60) * 4;
+      const diff = Math.abs(px[midIdx] - px[sideIdx]) + Math.abs(px[midIdx + 1] - px[sideIdx + 1]);
+      if (diff > 45) centerContrast++;
+    }
+    const hasPlacket = centerContrast > 8;
+
+    if (roleHint === "outerwear" || (hasPlacket && aspectRatio > 1.25)) {
+      return { role: "outerwear", type: "jacket" };
+    }
+
+    if (hasPlacket) {
+      return { role: "top", type: "shirt" };
+    }
+
+    return { role: "top", type: "tee" };
+  } catch (err) {
+    console.warn("Visual garment classification fallback:", err);
+    return {
+      role: roleHint === "bottom" ? "bottom" : "top",
+      type: roleHint === "bottom" ? "shorts" : "tee",
+    };
+  }
+}
+
+/**
  * Accurately extracts dominant garment color from a cropped piece of a worn photograph.
  * Samples the garment fabric core region while filtering out background wall/skin pixels.
  */

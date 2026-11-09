@@ -3,9 +3,8 @@ import { Modal } from "./Modal";
 import { Button } from "@/components/ui/button";
 import { LensMatchModal } from "./LensMatchModal";
 import { api, getSavedGeminiKey, type ExtractedGarment } from "@/lib/api";
-import { cropImageRegion, analyzeFile, createFastThumbnail, extractGarmentDominantColor } from "@/lib/imaging";
+import { cropImageRegion, analyzeFile, createFastThumbnail, extractGarmentDominantColor, classifyGarmentPiece } from "@/lib/imaging";
 import { nameColor } from "@/lib/color";
-import { searchInGoogleLens } from "@/lib/lens";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Check, Download, Globe, Layers, Loader2, Palette, RefreshCw, Sparkles, User, Wand2 } from "lucide-react";
@@ -89,55 +88,66 @@ export function OutfitExtractorModal({
           console.warn("Gemini outfit extraction error/timeout, using smart body segmentation:", aiErr);
         }
 
-        // If no AI garments detected, fallback to smart body proportion segmentation
+        // If no cloud AI garments detected, fallback to body proportion segmentation
+        // The local canvas visual classifier and dominant color extractor will automatically detect
+        // the exact garment type (shorts vs skirt vs jeans vs trousers) and real physical fabric color.
         if (detectedGarments.length === 0) {
           detectedGarments = [
             {
               role: "top",
               type: "tee",
-              name: "Worn Top",
-              colorName: "Neutral",
+              name: "Top Garment",
+              colorName: "Auto",
               colorHex: "#333333",
               box2d: DEFAULT_TOP_BOX,
               searchQuery: "clothing top product flat lay",
             },
             {
               role: "bottom",
-              type: "jeans",
-              name: "Worn Bottom",
-              colorName: "Denim",
-              colorHex: "#22344D",
+              type: "shorts",
+              name: "Bottom Garment",
+              colorName: "Auto",
+              colorHex: "#333333",
               box2d: DEFAULT_BOTTOM_BOX,
-              searchQuery: "pants jeans product flat lay",
+              searchQuery: "bottom product flat lay",
             },
           ];
         }
 
         if (cancelled) return;
 
-        // Crop pieces concurrently on canvas and extract physical pixel color
+        // Crop pieces concurrently on canvas, extract true physical pixel color, and classify piece accurately
         const drafts: ExtractedPieceDraft[] = await Promise.all(
           detectedGarments.map(async (g, i) => {
             const cropped = await cropImageRegion(originalImage, g.box2d);
             
-            // Extract dominant color directly from actual physical pixels of this piece
+            // 1. Extract true physical dominant color directly from fabric pixels
             const realColor = await extractGarmentDominantColor(cropped, g.role);
 
-            const validTypes = Object.keys(GARMENT_TYPES) as GarmentType[];
-            const pieceType: GarmentType = validTypes.includes(g.type as GarmentType)
-              ? (g.type as GarmentType)
-              : g.role === "bottom"
-                ? "jeans"
-                : "tee";
+            // 2. Classify garment type directly from cropped canvas geometry and skin presence
+            // Guarantees shorts/half-pants are NEVER called jeans, skirts are NEVER called jeans!
+            const visualClassification = await classifyGarmentPiece(cropped, g.role, g.box2d);
 
-            const defaultTitle = `${realColor.colorName} ${GARMENT_TYPES[pieceType].label.split(" /")[0]}`;
-            const pieceName = g.name && !g.name.toLowerCase().startsWith("worn ")
-              ? g.name
-              : defaultTitle;
+            // Determine piece type accurately:
+            let pieceType: GarmentType = visualClassification.type;
+            if (g.type === "shorts" || g.type === "skirt") {
+              pieceType = g.type;
+            } else if (g.type === "jeans" && visualClassification.type === "shorts") {
+              // Override incorrect jeans classification when half-pants are detected
+              pieceType = "shorts";
+            } else if (g.type === "jeans" && visualClassification.type === "skirt") {
+              pieceType = "skirt";
+            } else if (!pieceType) {
+              pieceType = g.role === "bottom" ? "shorts" : "tee";
+            }
+
+            const pieceRole = visualClassification.role || g.role || (pieceType === "shorts" || pieceType === "jeans" || pieceType === "trousers" || pieceType === "skirt" ? "bottom" : "top");
+            const typeLabel = GARMENT_TYPES[pieceType]?.label?.split(" /")?.[0] || "Garment";
+            const pieceName = `${realColor.colorName} ${typeLabel}`;
 
             return {
               id: `extracted-${i}-${Date.now()}`,
-              role: g.role,
+              role: pieceRole,
               name: pieceName,
               type: pieceType,
               colorName: realColor.colorName,
@@ -145,7 +155,7 @@ export function OutfitExtractorModal({
               fabric: g.fabric,
               image: cropped,
               notes: `Extracted from worn outfit photograph. ${g.fabric ? `Fabric: ${g.fabric}.` : ""}`,
-              searchQuery: `${realColor.colorName.toLowerCase()} ${GARMENT_TYPES[pieceType].label.toLowerCase()} product flat lay`,
+              searchQuery: `${realColor.colorName.toLowerCase()} ${typeLabel.toLowerCase()} product flat lay`,
             };
           })
         );
@@ -241,33 +251,15 @@ export function OutfitExtractorModal({
                     />
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        toast.info("Opening Google Lens with your garment photo...");
-                        const res = await searchInGoogleLens(currentPiece.image);
-                        if (res.clipboardCopied) {
-                          toast.success("Garment image copied to clipboard! In Google Lens, press ⌘V to paste.");
-                        }
-                      }}
-                      className="w-full text-xs gap-1.5 border-[#F26A4B]/40 hover:border-[#F26A4B] text-foreground font-medium"
-                    >
-                      <Globe className="size-3 text-[#F26A4B]" /> Search on Google Lens
-                    </Button>
-
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setLensIndex(activeTab)}
-                      className="w-full text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-                    >
-                      <Sparkles className="size-3 text-primary" /> Studio Flat-Lay Matches
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setLensIndex(activeTab)}
+                    className="w-full text-xs gap-1.5 border-primary/20 hover:border-primary hover:bg-primary/5 text-foreground font-medium"
+                  >
+                    <Sparkles className="size-3 text-[#F26A4B]" /> Find Studio Match
+                  </Button>
                 </div>
 
                 {/* Metadata Fields */}

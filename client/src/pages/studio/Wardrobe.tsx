@@ -398,7 +398,7 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         {drafts.length > 0 && (
           <>
             <p className="mt-6 text-xs leading-5 text-muted-foreground">
-              Review your pieces. Use <strong>Extract Top & Bottom</strong> to split worn clothes, or <strong>Google Lens</strong> to reverse search clean studio catalog photos.
+              Review your pieces. Use <strong>Extract Top & Bottom</strong> to split worn clothes, or <strong>Studio Match</strong> to find clean studio catalog photos.
             </p>
             <ul className="mt-4 space-y-3">
               {drafts.map(d => (
@@ -414,7 +414,7 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
                         onClick={() => setLensDraft(d)}
                         className="flex w-full items-center justify-center gap-1 rounded border border-border bg-card px-1.5 py-1 text-[10px] text-primary hover:bg-primary/10"
                       >
-                        <Globe className="size-2.5 text-[#F26A4B]" /> Google Lens
+                        <Sparkles className="size-2.5 text-[#F26A4B]" /> Studio Match
                       </button>
                     </div>
                   </div>
@@ -560,7 +560,7 @@ function EditModal({ item, onClose }: { item: WardrobeItem | null; onClose: () =
                 onClick={() => setLensOpen(true)}
                 className="w-full text-xs h-8 text-primary hover:bg-primary/10 gap-1.5"
               >
-                <Globe className="size-3 text-[#F26A4B]" /> Google Lens
+                <Sparkles className="size-3 text-[#F26A4B]" /> Studio Match
               </Button>
               <Button
                 type="button"
