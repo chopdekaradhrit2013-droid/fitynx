@@ -10,7 +10,7 @@ import { analyzeFile, createFastThumbnail, defaultName, readFile, type Analysis 
 import { api, getSavedGeminiKey } from "@/lib/api";
 import { GARMENT_TYPES, GROUP_LABELS, type GarmentType, type Group, type WardrobeItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Check, GalleryHorizontal, Globe, Layers, LayoutGrid, Loader2, Plus, Search, Shirt, Sparkles, Trash2, Upload, User, WandSparkles } from "lucide-react";
+import { Camera, Check, GalleryHorizontal, Globe, Layers, LayoutGrid, Loader2, Plus, Search, Shirt, Sparkles, Trash2, Upload, User, WandSparkles } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -271,6 +271,7 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [extractorImage, setExtractorImage] = React.useState<string | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const extractorInputRef = React.useRef<HTMLInputElement>(null);
+  const cameraInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => { if (!open) { setDrafts([]); setBusy(false); } }, [open]);
 
@@ -350,8 +351,26 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           <span className="mt-1 text-xs text-muted-foreground">JPG, PNG or WEBP · up to 15 MB each · photos stay on this device</span>
         </button>
 
-        {/* Worn outfit extractor prompt */}
-        <div className="mt-3 flex items-center justify-center">
+        {/* Quick action prompts: Camera & Worn outfit extractor */}
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+          {/* Mobile Camera Input */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={e => handle(e.target.files)}
+          />
+          <button
+            type="button"
+            onClick={() => cameraInputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+          >
+            <Camera className="size-3.5 text-[#F26A4B]" />
+            <span>Open Camera</span>
+          </button>
+
           <input
             ref={extractorInputRef}
             type="file"
@@ -369,10 +388,10 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
           <button
             type="button"
             onClick={() => extractorInputRef.current?.click()}
-            className="inline-flex items-center gap-2 rounded-full border border-dashed border-border px-4 py-2 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
           >
             <User className="size-3.5 text-[#F26A4B]" />
-            <span>Photo has someone wearing clothes? Extract Top & Bottom</span>
+            <span>Worn photo? Extract Top &amp; Bottom</span>
           </button>
         </div>
 

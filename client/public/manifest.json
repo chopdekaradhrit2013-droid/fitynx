@@ -1,0 +1,23 @@
+{
+  "name": "FITYNX · Personal Wardrobe & AI Stylist",
+  "short_name": "FITYNX",
+  "description": "Your private digital wardrobe and personal AI stylist.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#0D0D0E",
+  "theme_color": "#F26A4B",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
