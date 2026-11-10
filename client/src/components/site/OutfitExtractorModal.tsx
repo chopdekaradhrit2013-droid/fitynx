@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { Check, Download, Globe, Layers, Loader2, Palette, RefreshCw, Sparkles, User, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
+const GROUPS = Object.keys(GROUP_LABELS) as Group[];
+
 const QUICK_COLORS = [
   { name: "Black", hex: "#1A1A1A" },
   { name: "White", hex: "#F8F8F8" },
@@ -281,10 +283,16 @@ export function OutfitExtractorModal({
                         value={currentPiece.type}
                         onChange={e => updatePiece(activeTab, "type", e.target.value as GarmentType)}
                       >
-                        {Object.keys(GARMENT_TYPES).map(t => (
-                          <option key={t} value={t}>
-                            {GARMENT_TYPES[t as GarmentType].label}
-                          </option>
+                        {GROUPS.map(g => (
+                          <optgroup key={g} label={GROUP_LABELS[g]}>
+                            {(Object.keys(GARMENT_TYPES) as GarmentType[])
+                              .filter(t => GARMENT_TYPES[t].group === g)
+                              .map(t => (
+                                <option key={t} value={t}>
+                                  {GARMENT_TYPES[t as GarmentType].label}
+                                </option>
+                              ))}
+                          </optgroup>
                         ))}
                       </select>
                     </div>

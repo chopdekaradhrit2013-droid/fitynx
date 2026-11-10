@@ -308,7 +308,7 @@ async function fetchVisualCatalogImages(fashionQuery: string): Promise<SearchRes
   const isTee = queryLower.includes("tee") || queryLower.includes("t-shirt");
   const isShirt = queryLower.includes("shirt") && !isTee;
   const isDress = queryLower.includes("dress");
-  const isJacket = queryLower.includes("jacket") || queryLower.includes("blazer") || queryLower.includes("coat");
+  const isJacket = queryLower.includes("jacket") || queryLower.includes("blazer") || queryLower.includes("coat") || queryLower.includes("leather") || queryLower.includes("biker");
 
   // Filter curated pieces strictly matching the target garment type first!
   const typeMatched = CURATED_STUDIO_PIECES.filter(piece => {
@@ -320,7 +320,7 @@ async function fetchVisualCatalogImages(fashionQuery: string): Promise<SearchRes
     if (isTrousers) return text.includes("trouser") || text.includes("chino") || text.includes("cargo");
     if (isTee) return text.includes("tee") || text.includes("t-shirt");
     if (isShirt) return text.includes("shirt") && !text.includes("tee") && !text.includes("t-shirt");
-    if (isJacket) return text.includes("jacket") || text.includes("blazer") || text.includes("overcoat");
+    if (isJacket) return text.includes("jacket") || text.includes("blazer") || text.includes("overcoat") || text.includes("leather");
     return queryTokens.some(token => text.includes(token));
   });
 

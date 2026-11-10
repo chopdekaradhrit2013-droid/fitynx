@@ -11,6 +11,7 @@ const SHAPES: Record<GarmentType, string> = {
   shorts: `<path d="M56 60 L144 60 L156 180 L110 180 L100 108 L90 180 L44 180Z"/><path d="M56 76 L144 76" class="d"/>`,
   skirt: `<path d="M64 60 L136 60 L170 250 Q100 266 30 250Z"/><path d="M64 76 L136 76" class="d"/>`,
   jacket: `<path d="M62 50 L24 78 38 116 54 106 48 288 Q100 300 152 288 L146 106 162 116 176 78 138 50 120 38 Q100 55 80 38Z"/><path d="M100 54 L100 290 M72 110 L88 128 M128 110 L112 128" class="d"/>`,
+  leather_jacket: `<path d="M62 48 L22 76 36 114 54 104 46 288 Q100 300 154 288 L146 104 164 114 178 76 138 48 120 36 Q100 52 80 36Z"/><path d="M84 48 L114 136 L114 290 M68 96 L108 124 M132 96 L114 118" class="d"/><circle cx="72" cy="100" r="2" class="f"/><circle cx="128" cy="100" r="2" class="f"/>`,
   coat: `<path d="M62 46 L22 76 34 220 56 214 50 298 Q100 308 150 298 L144 214 166 220 178 76 138 46 120 34 Q100 52 80 34Z"/><path d="M100 52 L100 298" class="d"/><circle cx="88" cy="130" r="3" class="f"/><circle cx="88" cy="170" r="3" class="f"/><circle cx="88" cy="210" r="3" class="f"/>`,
   blazer: `<path d="M62 46 L24 76 36 214 56 208 50 280 Q100 292 150 280 L144 208 164 214 176 76 138 46 120 34 Q100 52 80 34Z"/><path d="M100 120 L72 40 M100 120 L128 40 M100 120 L100 280" class="d"/><circle cx="104" cy="176" r="3" class="f"/>`,
   dress: `<path d="M78 24 L68 70 L52 100 L30 280 Q100 296 170 280 L148 100 L132 70 L122 24 L110 40 Q100 48 90 40Z"/><path d="M52 100 Q100 112 148 100" class="d"/>`,

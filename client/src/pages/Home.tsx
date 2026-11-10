@@ -21,7 +21,7 @@ const NAV = [
   { href: "#faq", label: "FAQ" },
 ];
 
-const KIND: Partial<Record<GarmentType, RailGarment["kind"]>> = { tee: "tee", shirt: "shirt", knit: "knit", hoodie: "hoodie", jacket: "jacket", coat: "coat" };
+const KIND: Partial<Record<GarmentType, RailGarment["kind"]>> = { tee: "tee", shirt: "shirt", knit: "knit", hoodie: "hoodie", jacket: "jacket", leather_jacket: "jacket", coat: "coat" };
 const sample = buildSampleWardrobe();
 const railItems: RailGarment[] = sample.filter(i => ["tee", "shirt", "knit", "hoodie", "jacket", "coat", "blazer"].includes(i.type)).map((i, n) => ({
   id: i.id, name: i.name, category: i.type, kind: KIND[i.type] ?? "jacket", color: i.colorHex, image: i.image, tag: String(n + 1).padStart(2, "0"), description: i.notes, details: [i.colorName, i.type],

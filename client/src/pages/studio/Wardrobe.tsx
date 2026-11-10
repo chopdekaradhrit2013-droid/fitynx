@@ -15,7 +15,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 const GROUPS = Object.keys(GROUP_LABELS) as Group[];
-const RAIL_KIND: Partial<Record<GarmentType, GarmentKind>> = { tee: "tee", shirt: "shirt", knit: "knit", hoodie: "hoodie", jacket: "jacket", coat: "coat", blazer: "jacket" };
+const RAIL_KIND: Partial<Record<GarmentType, GarmentKind>> = { tee: "tee", shirt: "shirt", knit: "knit", hoodie: "hoodie", jacket: "jacket", leather_jacket: "jacket", coat: "coat", blazer: "jacket" };
 
 interface Draft extends Analysis { key: string; name: string; fileName: string }
 
@@ -33,8 +33,8 @@ export default function Wardrobe() {
     return `${i.name} ${i.colorName} ${GARMENT_TYPES[i.type].label}`.toLowerCase().includes(query.trim().toLowerCase());
   });
 
-  const tops = items.filter(i => GARMENT_TYPES[i.type].group === "top");
-  const filteredTops = filtered.filter(i => GARMENT_TYPES[i.type].group === "top");
+  const tops = items.filter(i => GARMENT_TYPES[i.type].group === "top" || GARMENT_TYPES[i.type].group === "outerwear");
+  const filteredTops = filtered.filter(i => GARMENT_TYPES[i.type].group === "top" || GARMENT_TYPES[i.type].group === "outerwear");
 
   const topsRail: RailGarment[] = React.useMemo(() => {
     const list = query.trim() ? filteredTops : tops;
@@ -332,6 +332,10 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     }
   };
 
+  const handleClose = React.useCallback(() => {
+    if (!busy) onClose();
+  }, [busy, onClose]);
+
   const save = () => {
     const now = Date.now();
     actions.addItems(drafts.map<WardrobeItem>((d, i) => ({ id: uid(), name: d.name.trim() || defaultName(d.colorName, d.type), type: d.type, colorHex: d.colorHex, colorName: d.colorName, notes: "", image: d.image, createdAt: now - i })));
@@ -341,7 +345,7 @@ function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   return (
     <>
-      <Modal open={open} onClose={() => !busy && onClose()} eyebrow="Add to wardrobe" title="Bring a piece in." wide={drafts.length > 0}>
+      <Modal open={open} onClose={handleClose} eyebrow="Add to wardrobe" title="Bring a piece in." wide={drafts.length > 0}>
         <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handle(e.target.files)} />
         <button type="button" disabled={busy} onClick={() => inputRef.current?.click()}
           onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)} onDrop={e => { e.preventDefault(); setDrag(false); void handle(e.dataTransfer.files); }}

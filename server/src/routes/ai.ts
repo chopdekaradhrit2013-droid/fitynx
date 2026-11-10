@@ -55,7 +55,7 @@ router.post("/analyze", async (req, res): Promise<void> => {
 Return ONLY valid JSON matching this exact structure:
 {
   "name": "Concise product title, e.g. Vintage Faded Indigo Denim Jacket",
-  "garmentType": "one of: tee, shirt, knit, hoodie, trousers, jeans, shorts, skirt, jacket, coat, blazer, dress, sneakers, boots, loafers, bag, scarf, cap",
+  "garmentType": "one of: tee, shirt, knit, hoodie, trousers, jeans, shorts, skirt, jacket, leather_jacket, coat, blazer, dress, sneakers, boots, loafers, bag, scarf, cap",
   "colorName": "Refined color shade name, e.g. Midnight Navy, Sage Olive, Ecru, Camel",
   "colorHex": "Estimated hex code for dominant color, e.g. #1E3A8A",
   "fabric": "Estimated fabric or material, e.g. 100% Cotton Denim, Merino Wool, Silk, Suede",
@@ -174,7 +174,7 @@ router.post("/extract-outfit", async (req, res): Promise<void> => {
 The user uploaded an image that contains clothes worn by a person (e.g. mirror selfie, lookbook, street style).
 Analyze the image and detect the distinct pieces of clothing worn by the person:
 Specifically look for:
-1. Top (tee, shirt, knit, hoodie, jacket, coat, blazer)
+1. Top (tee, shirt, knit, hoodie, jacket, leather_jacket, coat, blazer)
 2. Bottom (trousers, jeans, shorts, skirt)
 3. Dress (if wearing a single dress instead of top/bottom)
 4. Shoes (sneakers, boots, loafers) - if visible
@@ -190,7 +190,7 @@ Return ONLY valid JSON matching this exact structure:
   "garments": [
     {
       "role": "top",
-      "type": "one of: tee, shirt, knit, hoodie, jacket, coat, blazer",
+      "type": "one of: tee, shirt, knit, hoodie, jacket, leather_jacket, coat, blazer",
       "name": "Concise product title, e.g. Vintage Washed Charcoal Oversized Tee",
       "colorName": "Color name, e.g. Charcoal Grey",
       "colorHex": "Hex color, e.g. #3A3A3C",

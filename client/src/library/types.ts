@@ -3,7 +3,7 @@ export type Group = "top" | "bottom" | "outerwear" | "dress" | "shoes" | "access
 export type GarmentType =
   | "tee" | "shirt" | "knit" | "hoodie"
   | "trousers" | "jeans" | "shorts" | "skirt"
-  | "jacket" | "coat" | "blazer"
+  | "jacket" | "leather_jacket" | "coat" | "blazer"
   | "dress"
   | "sneakers" | "boots" | "loafers"
   | "bag" | "scarf" | "cap";
@@ -21,6 +21,7 @@ export const GARMENT_TYPES: Record<GarmentType, GarmentTypeInfo> = {
   shorts: { label: "Shorts", group: "bottom", formality: 0, warmth: 0 },
   skirt: { label: "Skirt", group: "bottom", formality: 2, warmth: 1 },
   jacket: { label: "Jacket", group: "outerwear", formality: 1, warmth: 2 },
+  leather_jacket: { label: "Leather Jacket", group: "outerwear", formality: 2, warmth: 3 },
   coat: { label: "Coat", group: "outerwear", formality: 3, warmth: 4 },
   blazer: { label: "Blazer", group: "outerwear", formality: 4, warmth: 2 },
   dress: { label: "Dress", group: "dress", formality: 3, warmth: 1 },
@@ -33,7 +34,7 @@ export const GARMENT_TYPES: Record<GarmentType, GarmentTypeInfo> = {
 };
 
 export const GROUP_LABELS: Record<Group, string> = {
-  top: "Tops", bottom: "Bottoms", outerwear: "Outerwear", dress: "Dresses", shoes: "Shoes", accessory: "Accessories",
+  top: "Tops", bottom: "Bottoms", outerwear: "Jackets & Outerwear", dress: "Dresses", shoes: "Shoes", accessory: "Accessories",
 };
 
 export interface WardrobeItem {

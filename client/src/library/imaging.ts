@@ -278,10 +278,12 @@ function dominantColor(ctx: CanvasRenderingContext2D, w: number, h: number, alph
 }
 
 const KEYWORDS: Array<[RegExp, GarmentType]> = [
+  [/leather\s*jacket|biker\s*jacket|moto\s*jacket|leather/i, "leather_jacket"],
+  [/jacket|bomber|overshirt|windbreaker|anorak/i, "jacket"],
   [/t-?shirt|tee\b/i, "tee"], [/hood/i, "hoodie"], [/sweater|knit|jumper|cardigan|pullover/i, "knit"],
   [/shirt|blouse|polo/i, "shirt"], [/jean|denim/i, "jeans"], [/short/i, "shorts"], [/skirt/i, "skirt"],
   [/trouser|pant|chino|slack/i, "trousers"], [/blazer/i, "blazer"], [/coat|parka|trench/i, "coat"],
-  [/jacket|bomber|overshirt|windbreaker/i, "jacket"], [/dress|gown/i, "dress"],
+  [/dress|gown/i, "dress"],
   [/sneaker|trainer/i, "sneakers"], [/boot/i, "boots"], [/loafer|oxford|derby|shoe/i, "loafers"],
   [/bag|tote|backpack/i, "bag"], [/scarf|stole/i, "scarf"], [/cap|hat|beanie/i, "cap"],
 ];

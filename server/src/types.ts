@@ -14,7 +14,7 @@ export type SafeUser = Omit<UserRecord, "passwordHash">;
 export type GarmentType =
   | "tee" | "shirt" | "knit" | "hoodie"
   | "trousers" | "jeans" | "shorts" | "skirt"
-  | "jacket" | "coat" | "blazer"
+  | "jacket" | "leather_jacket" | "coat" | "blazer"
   | "dress"
   | "sneakers" | "boots" | "loafers"
   | "bag" | "scarf" | "cap";
