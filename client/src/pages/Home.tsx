@@ -67,7 +67,7 @@ export default function Home() {
       <header className={`sticky top-0 z-40 transition-all ${scrolled ? "border-b border-border bg-background/85 backdrop-blur-md" : "border-b border-transparent"}`}>
         <div className="relative mx-auto flex h-[72px] max-w-[1320px] items-center justify-between px-5 md:px-10">
           {/* Interactive hanging lamp pull-string theme toggle */}
-          <PullCordLamp className="absolute -top-1 right-20 sm:right-48 md:right-72" />
+          <PullCordLamp className={cn("absolute -top-1 right-20 sm:right-48 md:right-72 transition-opacity duration-300", scrolled && "opacity-0 pointer-events-none")} />
           <Brand />
           <nav className="hidden items-center gap-8 text-sm md:flex" aria-label="Primary">
             {NAV.map(n => <a key={n.href} href={n.href} className="text-muted-foreground transition-colors hover:text-foreground">{n.label}</a>)}
@@ -218,13 +218,42 @@ export default function Home() {
             <h2 className="mt-4 font-serif text-4xl leading-[1.02] tracking-[-0.05em] md:text-6xl">Everything a stylist does,<br /><em className="not-italic text-[#F26A4B]">built around your closet.</em></h2>
           </Reveal>
           <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((f, i) => (
-              <Reveal key={f.title} delay={i * 60} className="bg-card p-7 md:p-9">
-                <span className="flex size-10 items-center justify-center rounded-full border border-border bg-background"><f.icon className="size-4" /></span>
-                <h3 className="mt-8 font-serif text-2xl tracking-[-0.03em]">{f.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">{f.text}</p>
-              </Reveal>
-            ))}
+            {FEATURES.map((f, i) => {
+              if (i === 2) {
+                return (
+                  <Reveal
+                    key="ai-stylist-video-card"
+                    delay={i * 60}
+                    className="relative overflow-hidden bg-[#f5f5f7] dark:bg-[#111] p-0 flex items-center justify-center min-h-[280px] sm:min-h-[300px] rounded-2xl"
+                  >
+                    {/* Video replacement: continuous loop, no pause button, no audio */}
+                    <video
+                      src="/videos/ai-stylist.mp4"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      disablePictureInPicture
+                      controls={false}
+                      className="size-full object-cover pointer-events-none select-none"
+                    />
+                    <div className="absolute top-4 left-4 z-10 pointer-events-none">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 dark:border-white/10 bg-white/85 dark:bg-black/80 px-2.5 py-1 backdrop-blur-md font-mono text-[9px] uppercase tracking-[0.16em] text-foreground shadow-xs">
+                        <span className="size-1.5 rounded-full bg-[#F26A4B] animate-pulse" />
+                        AI Stylist · Dressing Model
+                      </span>
+                    </div>
+                  </Reveal>
+                );
+              }
+              return (
+                <Reveal key={f.title} delay={i * 60} className="bg-card p-7 md:p-9">
+                  <span className="flex size-10 items-center justify-center rounded-full border border-border bg-background"><f.icon className="size-4" /></span>
+                  <h3 className="mt-8 font-serif text-2xl tracking-[-0.03em]">{f.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{f.text}</p>
+                </Reveal>
+              );
+            })}
           </div>
         </section>
 
