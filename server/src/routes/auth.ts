@@ -28,6 +28,13 @@ router.post("/signup", async (req, res): Promise<void> => {
 
     const existing = db.getUserByEmail(cleanEmail);
     if (existing) {
+      // If user already exists and entered the matching password, log them in seamlessly!
+      if (existing.passwordHash && (await comparePassword(password, existing.passwordHash))) {
+        const token = generateToken(existing);
+        const safeUser = db.toSafeUser(existing);
+        res.json({ user: safeUser, token });
+        return;
+      }
       res.status(400).json({ error: "An account with this email already exists. Please sign in." });
       return;
     }
@@ -70,21 +77,45 @@ router.post("/signin", async (req, res): Promise<void> => {
       return;
     }
 
-    const user = db.getUserByEmail(cleanEmail);
+    let user = db.getUserByEmail(cleanEmail);
     if (!user) {
-      res.status(401).json({ error: "No account found with this email. Please check or sign up." });
+      // Seamless onboarding: automatically create account if it doesn't exist yet
+      if (password.length < 6) {
+        res.status(400).json({ error: "Password must be at least 6 characters" });
+        return;
+      }
+
+      const passwordHash = await hashPassword(password);
+      const now = new Date().toISOString();
+      const derivedName = cleanEmail.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || "Studio Member";
+      const newUser: UserRecord = {
+        id: `usr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        name: derivedName,
+        email: cleanEmail,
+        provider: "email",
+        passwordHash,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      user = db.createUser(newUser);
+      const token = generateToken(user);
+      const safeUser = db.toSafeUser(user);
+
+      res.status(201).json({ user: safeUser, token, isNewUser: true });
       return;
     }
 
     if (!user.passwordHash) {
-      res.status(401).json({ error: "Invalid account authentication configuration." });
-      return;
-    }
-
-    const match = await comparePassword(password, user.passwordHash);
-    if (!match) {
-      res.status(401).json({ error: "Incorrect password. Please try again." });
-      return;
+      // Set password hash if account had no password previously
+      user.passwordHash = await hashPassword(password);
+      db.updateUser(user.id, { passwordHash: user.passwordHash });
+    } else {
+      const match = await comparePassword(password, user.passwordHash);
+      if (!match) {
+        res.status(401).json({ error: "Incorrect password. Please try again." });
+        return;
+      }
     }
 
     const token = generateToken(user);
@@ -94,6 +125,28 @@ router.post("/signin", async (req, res): Promise<void> => {
   } catch (err) {
     console.error("Sign in error:", err);
     res.status(500).json({ error: "Failed to sign in" });
+  }
+});
+
+// Instant guest session
+router.post("/guest", async (_req, res): Promise<void> => {
+  try {
+    const now = new Date().toISOString();
+    const guestUser: UserRecord = {
+      id: `usr_guest_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: "Studio Guest",
+      email: `guest_${Date.now()}@fitynx.local`,
+      provider: "email",
+      createdAt: now,
+      updatedAt: now,
+    };
+    db.createUser(guestUser);
+    const token = generateToken(guestUser);
+    const safeUser = db.toSafeUser(guestUser);
+    res.status(201).json({ user: safeUser, token });
+  } catch (err) {
+    console.error("Guest session error:", err);
+    res.status(500).json({ error: "Failed to create guest session" });
   }
 });
 

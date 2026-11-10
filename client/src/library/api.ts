@@ -119,6 +119,14 @@ export const api = {
       return res;
     },
 
+    async guest(): Promise<{ user: ApiUser; token: string }> {
+      const res = await request<{ user: ApiUser; token: string }>("/api/auth/guest", {
+        method: "POST",
+      });
+      setAuthToken(res.token);
+      return res;
+    },
+
     async updateProfile(updates: { name?: string; avatar?: string }): Promise<{ user: ApiUser }> {
       return request<{ user: ApiUser }>("/api/auth/profile", {
         method: "PATCH",

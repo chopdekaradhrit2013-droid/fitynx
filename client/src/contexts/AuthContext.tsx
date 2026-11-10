@@ -5,6 +5,7 @@ import {
   setCurrentSession,
   signInUser,
   signUpUser,
+  guestUser,
   type SignInData,
   type SignUpData,
   type User,
@@ -17,6 +18,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (data: SignUpData) => Promise<User>;
   signIn: (data: SignInData) => Promise<User>;
+  signInAsGuest: () => Promise<User>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<User>) => Promise<User>;
 }
@@ -143,6 +145,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleSignInAsGuest = async (): Promise<User> => {
+    try {
+      const res = await api.auth.guest();
+      const sessionUser: User = {
+        id: res.user.id,
+        name: res.user.name,
+        email: res.user.email,
+        avatar: res.user.avatar,
+        provider: "email",
+        createdAt: res.user.createdAt,
+      };
+      setUser(sessionUser);
+      setCurrentSession(sessionUser);
+      await initStore(sessionUser.id);
+      return sessionUser;
+    } catch {
+      const localGuest = await guestUser();
+      setUser(localGuest);
+      await initStore(localGuest.id);
+      return localGuest;
+    }
+  };
+
   const handleSignOut = async (): Promise<void> => {
     try {
       await api.auth.signout();
@@ -187,6 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         signUp: handleSignUp,
         signIn: handleSignIn,
+        signInAsGuest: handleSignInAsGuest,
         signOut: handleSignOut,
         updateProfile: handleUpdateProfile,
       }}

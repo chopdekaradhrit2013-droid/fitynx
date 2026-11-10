@@ -135,14 +135,16 @@ export async function signInUser({ email, password }: SignInData): Promise<User>
   }
 
   const users = getStoredUsers();
-  const user = users.find(u => u.email.toLowerCase() === cleanEmail);
+  let user = users.find(u => u.email.toLowerCase() === cleanEmail);
 
   if (!user) {
-    throw new Error("No account found with this email. Please check your email or sign up.");
+    // Seamless auto-creation if account does not exist yet
+    const derivedName = cleanEmail.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || "Studio Member";
+    return await signUpUser({ name: derivedName, email: cleanEmail, password });
   }
 
   const hash = await hashPassword(password);
-  if (user.passwordHash !== hash) {
+  if (user.passwordHash && user.passwordHash !== hash) {
     throw new Error("Incorrect password. Please try again.");
   }
 
@@ -157,6 +159,18 @@ export async function signInUser({ email, password }: SignInData): Promise<User>
 
   setCurrentSession(sessionUser);
   return sessionUser;
+}
+
+export async function guestUser(): Promise<User> {
+  const guest: User = {
+    id: `usr_guest_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    name: "Studio Guest",
+    email: `guest_${Date.now()}@fitynx.local`,
+    provider: "email",
+    createdAt: new Date().toISOString(),
+  };
+  setCurrentSession(guest);
+  return guest;
 }
 
 export async function signOutUser(): Promise<void> {

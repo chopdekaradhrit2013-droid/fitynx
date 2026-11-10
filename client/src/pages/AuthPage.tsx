@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Brand } from "@/components/site/Brand";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, User as UserIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, ShieldCheck, Sparkles, User as UserIcon } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -12,7 +12,7 @@ interface AuthPageProps {
 
 export default function AuthPage({ initialMode = "login" }: AuthPageProps) {
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
-  const { user, isAuthenticated, signIn, signUp } = useAuth();
+  const { user, isAuthenticated, signIn, signUp, signInAsGuest } = useAuth();
   const [, setLocation] = useLocation();
 
   const [name, setName] = useState("");
@@ -93,11 +93,11 @@ export default function AuthPage({ initialMode = "login" }: AuthPageProps) {
                 Private Wardrobe Studio
               </span>
               <h1 className="mt-4 font-serif text-3xl tracking-[-0.03em] md:text-4xl">
-                {mode === "login" ? "Welcome back." : "Create account."}
+                {mode === "login" ? "Enter Studio." : "Create account."}
               </h1>
               <p className="mt-2 text-xs leading-5 text-muted-foreground">
                 {mode === "login"
-                  ? "Sign in to access your digital wardrobe, personal stylist, and outfit calendar."
+                  ? "Sign in with your email. If you're new, your account is automatically created on first login."
                   : "Start cataloguing your clothes and composing weather-ready looks in seconds."}
               </p>
             </div>
@@ -253,6 +253,37 @@ export default function AuthPage({ initialMode = "login" }: AuthPageProps) {
                     Create account &amp; enter <ArrowRight className="size-4" />
                   </span>
                 )}
+              </Button>
+
+              <div className="relative my-3">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/60" />
+                </div>
+                <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
+                  <span className="bg-card px-2 text-muted-foreground">or</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                disabled={loading}
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    await signInAsGuest();
+                    toast.success("Welcome! Entered as guest with private storage.");
+                    setLocation(redirectTarget);
+                  } catch (err) {
+                    toast.error("Could not start guest session");
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="w-full gap-2 border-border hover:border-primary hover:bg-primary/5 text-xs h-9"
+              >
+                <Sparkles className="size-3.5 text-[#F26A4B]" />
+                Continue as Guest (Instant Access)
               </Button>
             </form>
 
